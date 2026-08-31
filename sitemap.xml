@@ -1,15 +1,39 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url><loc>https://casanjaybasak.netlify.app/</loc><priority>1.0</priority></url>
-  <url><loc>https://casanjaybasak.netlify.app/about</loc><priority>0.8</priority></url>
-  <url><loc>https://casanjaybasak.netlify.app/services</loc><priority>0.9</priority></url>
-  <url><loc>https://casanjaybasak.netlify.app/individuals</loc><priority>0.7</priority></url>
-  <url><loc>https://casanjaybasak.netlify.app/business</loc><priority>0.7</priority></url>
-  <url><loc>https://casanjaybasak.netlify.app/appointment</loc><priority>0.8</priority></url>
-  <url><loc>https://casanjaybasak.netlify.app/contact</loc><priority>0.8</priority></url>
-  <url><loc>https://casanjaybasak.netlify.app/resources</loc><priority>0.6</priority></url>
-  <url><loc>https://casanjaybasak.netlify.app/privacy-policy</loc><priority>0.3</priority></url>
-  <url><loc>https://casanjaybasak.netlify.app/terms</loc><priority>0.3</priority></url>
-  <url><loc>https://casanjaybasak.netlify.app/disclaimer</loc><priority>0.3</priority></url>
-  <url><loc>https://casanjaybasak.netlify.app/cookie-policy</loc><priority>0.3</priority></url>
+  <url><loc>https://ca-sk-basak-consultancy.in/</loc><priority>1.0</priority></url>
+  <url><loc>https://ca-sk-basak-consultancy.in/about</loc><priority>0.8</priority></url>
+  <url><loc>https://ca-sk-basak-consultancy.in/services</loc><priority>0.9</priority></url>
+  <url><loc>https://ca-sk-basak-consultancy.in/individuals</loc><priority>0.7</priority></url>
+  <url><loc>https://ca-sk-basak-consultancy.in/business</loc><priority>0.7</priority></url>
+  <url><loc>https://ca-sk-basak-consultancy.in/appointment</loc><priority>0.8</priority></url>
+  <url><loc>https://ca-sk-basak-consultancy.in/contact</loc><priority>0.8</priority></url>
+  <url><loc>https://ca-sk-basak-consultancy.in/resources</loc><priority>0.8</priority></url>
+
+  <url><loc>https://ca-sk-basak-consultancy.in/business-financial-health-monitor</loc><priority>0.9</priority></url>
+  <url><loc>https://ca-sk-basak-consultancy.in/loan-dscr-monitor</loc><priority>0.9</priority></url>
+  <url><loc>https://ca-sk-basak-consultancy.in/cash-flow-monitor</loc><priority>0.9</priority></url>
+  <url><loc>https://ca-sk-basak-consultancy.in/receivable-payable-monitor</loc><priority>0.9</priority></url>
+  <url><loc>https://ca-sk-basak-consultancy.in/cma-bank-renewal-monitor</loc><priority>0.9</priority></url>
+  <url><loc>https://ca-sk-basak-consultancy.in/monthly-mis-cfo-dashboard</loc><priority>0.9</priority></url>
+
+  <url><loc>https://ca-sk-basak-consultancy.in/resources/msme-working-capital-loan-common-mistakes</loc><lastmod>2026-08-30</lastmod><priority>0.6</priority></url>
+  <url><loc>https://ca-sk-basak-consultancy.in/resources/what-is-dscr-why-banks-care-loan-renewal</loc><lastmod>2026-08-30</lastmod><priority>0.6</priority></url>
+  <url><loc>https://ca-sk-basak-consultancy.in/resources/cash-flow-vs-profit-why-profitable-business-runs-out-of-cash</loc><lastmod>2026-08-30</lastmod><priority>0.6</priority></url>
+  <url><loc>https://ca-sk-basak-consultancy.in/resources/tds-on-professional-fees-explained</loc><lastmod>2026-08-30</lastmod><priority>0.6</priority></url>
+  <url><loc>https://ca-sk-basak-consultancy.in/resources/income-tax-return-filing-salaried-individuals-checklist</loc><lastmod>2026-08-30</lastmod><priority>0.6</priority></url>
+  <url><loc>https://ca-sk-basak-consultancy.in/resources/gst-return-filing-deadlines-2026-compliance-calendar</loc><lastmod>2026-08-30</lastmod><priority>0.6</priority></url>
+  <url><loc>https://ca-sk-basak-consultancy.in/resources/old-vs-new-tax-regime-how-to-choose</loc><lastmod>2026-08-30</lastmod><priority>0.6</priority></url>
+  <url><loc>https://ca-sk-basak-consultancy.in/resources/how-to-read-company-balance-sheet-guide</loc><lastmod>2026-08-30</lastmod><priority>0.6</priority></url>
+  <url><loc>https://ca-sk-basak-consultancy.in/resources/gst-input-tax-credit-common-rejection-reasons</loc><lastmod>2026-08-30</lastmod><priority>0.6</priority></url>
+  <url><loc>https://ca-sk-basak-consultancy.in/resources/cma-data-explained-what-banks-look-for</loc><lastmod>2026-08-30</lastmod><priority>0.6</priority></url>
+  <url><loc>https://ca-sk-basak-consultancy.in/resources/payroll-compliance-small-business-pf-esi-professional-tax</loc><lastmod>2026-08-30</lastmod><priority>0.6</priority></url>
+  <url><loc>https://ca-sk-basak-consultancy.in/resources/how-to-prepare-for-gst-audit-readiness-checklist</loc><lastmod>2026-08-29</lastmod><priority>0.6</priority></url>
+  <url><loc>https://ca-sk-basak-consultancy.in/resources/understanding-working-capital-cycle-calculate-improve</loc><lastmod>2026-08-29</lastmod><priority>0.6</priority></url>
+  <url><loc>https://ca-sk-basak-consultancy.in/resources/advance-tax-payments-who-when-penalties</loc><lastmod>2026-08-29</lastmod><priority>0.6</priority></url>
+  <url><loc>https://ca-sk-basak-consultancy.in/resources/choosing-right-business-structure-proprietorship-partnership-private-limited</loc><lastmod>2026-08-29</lastmod><priority>0.6</priority></url>
+
+  <url><loc>https://ca-sk-basak-consultancy.in/privacy-policy</loc><priority>0.3</priority></url>
+  <url><loc>https://ca-sk-basak-consultancy.in/terms</loc><priority>0.3</priority></url>
+  <url><loc>https://ca-sk-basak-consultancy.in/disclaimer</loc><priority>0.3</priority></url>
+  <url><loc>https://ca-sk-basak-consultancy.in/cookie-policy</loc><priority>0.3</priority></url>
 </urlset>

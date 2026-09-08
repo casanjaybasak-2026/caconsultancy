@@ -2,4 +2,19 @@ User-agent: *
 Allow: /
 Disallow: /admin
 
+# Bare-form and authenticated utility pages excluded from crawling/ads -
+# these have no independent content value and were flagged by AdSense as
+# "low value content" / "screens without publisher-content".
+Disallow: /*/signup
+Disallow: /*/login
+Disallow: /*/dashboard
+Disallow: /*/submit
+Disallow: /*/payment-status
+Disallow: /loan-dscr-monitor/loans
+Disallow: /cash-flow-monitor/receivables
+Disallow: /cash-flow-monitor/payables
+Disallow: /receivable-payable-monitor/actions
+Disallow: /cma-bank-renewal-monitor/facilities
+Disallow: /monthly-mis-cfo-dashboard/budget
+
 Sitemap: https://ca-sk-basak-consultancy.in/sitemap.xml

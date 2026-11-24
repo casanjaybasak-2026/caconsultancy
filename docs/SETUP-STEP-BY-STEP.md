@@ -12,7 +12,7 @@
 | 1. Domain / SSL | ✅ `www` added, HTTPS forced |
 | 2. Email Routing | ✅ Enabled; `info@` and `booking@` forward to Gmail |
 | 3. Resend | 🟡 DNS records are **already added** (Tokyo). You still need to confirm "Verified" and create an API key |
-| 4. CallMeBot | ❓ I can't check this; it's on your phone |
+| 4. Telegram alerts | ❓ On your phone (CallMeBot was full) |
 | 5. Razorpay | ❓ I can't check this; it's in your Razorpay account |
 | 6. Cloudflare Access | ❓ I can check it after deploy |
 | 8. Secrets | ❌ None added yet |
@@ -93,18 +93,40 @@
 
 ---
 
-## Step 4: CallMeBot, for WhatsApp alerts on your phone (3 min)
+## Step 4: Telegram, for instant alerts on your phone (5 min, free)
 
-1. On your phone or computer, open **https://www.callmebot.com/blog/free-api-whatsapp-messages/**.
-2. Find the phone number they list. It changes from time to time; use the one shown on that page.
-3. Save that number in your phone contacts as **CallMeBot**.
-4. Open **WhatsApp**, start a chat with **CallMeBot**, and send exactly: `I allow callmebot to send me messages`
-5. Within a minute or two you'll get a reply like "API Activated for your phone number. Your APIKEY is **123456**".
-6. Save that APIKEY number. **Don't paste it in chat.**
+CallMeBot's free WhatsApp bot was full, so alerts go to **Telegram** instead. Each alert includes a tap-to-WhatsApp link to the client.
 
-✅ **It worked when:** you received the reply with your APIKEY.
+**4A. Install Telegram.** Install **Telegram** from the Play Store or App Store, open it, and sign up with your phone number.
 
-❗ **No reply after 2 minutes?** Wait 24 hours and try again. Their service sometimes queues new users.
+**4B. Create your bot with @BotFather**
+1. In Telegram, tap the 🔍 search and type **BotFather**. Open the one with the **blue verified tick** ✔️ (exactly `@BotFather`).
+2. Tap **Start**.
+3. Send: `/newbot`
+4. When it asks for a **name**, send: `SKB Booking Alerts`
+5. When it asks for a **username**, send something ending in `bot`, e.g. `skbasak_alerts_bot`. If it's taken, try `skbasak_bookings_2026_bot`.
+6. BotFather replies "Done! Congratulations…" with a **token** that looks like `7123456789:AAH...`. Copy it into your notes. **Don't share it or paste it in chat.**
+
+**4C. Say hi to your bot**
+1. In BotFather's message, tap the link `t.me/your_bot_username` (or search for your bot's username).
+2. Tap **Start**, then send: `hi`
+
+**4D. Find your chat ID**
+1. In your phone or computer browser, open this address, replacing `YOUR_TOKEN` with the token from 4B (keep the word `bot` in front of it):
+   ```
+   https://api.telegram.org/botYOUR_TOKEN/getUpdates
+   ```
+2. You'll see some text. Look for `"chat":{"id":` followed by a number, e.g. `"chat":{"id":987654321`.
+3. That number is your **chat ID**. Save it in your notes.
+   - If you only see `{"ok":true,"result":[]}`, send `hi` to your bot again, then refresh the page.
+
+**4E. Test it (optional).** Open this address, replacing both parts:
+```
+https://api.telegram.org/botYOUR_TOKEN/sendMessage?chat_id=YOUR_CHAT_ID&text=Test+from+my+website
+```
+"Test from my website" should pop up in Telegram.
+
+✅ **Done when:** you have the **token** and the **chat ID** saved, and the test message arrived.
 
 ---
 
@@ -164,7 +186,7 @@ Access team domain:     yourteam.cloudflareaccess.com
 Access AUD tag:         ...
 ```
 
-Your Gmail and WhatsApp number go into Cloudflare as secrets in Step 8, so they never appear in the public GitHub repo.
+Your Gmail and Telegram details go into Cloudflare as secrets in Step 8, so they never appear in the public GitHub repo.
 
 ---
 
@@ -183,9 +205,9 @@ Your Gmail and WhatsApp number go into Cloudflare as secrets in Step 8, so they 
 | `RAZORPAY_KEY_SECRET` | Razorpay Key Secret (Step 5.3) |
 | `RAZORPAY_WEBHOOK_SECRET` | the webhook password you made (Step 5.5) |
 | `RESEND_API_KEY` | the `re_…` key (Step 3.5) |
-| `CALLMEBOT_API_KEY` | the APIKEY number (Step 4.5) |
+| `TELEGRAM_BOT_TOKEN` | the bot token from Step 4B |
+| `TELEGRAM_CHAT_ID` | the chat ID number from Step 4D |
 | `OWNER_EMAIL` | your Gmail, where booking and enquiry alerts go |
-| `OWNER_WHATSAPP` | your WhatsApp number with country code, no + or spaces (e.g. `919830012345`) |
 
 ✅ **It worked when:** all six names appear in the list, each showing as **Secret** with the value hidden.
 
@@ -228,11 +250,11 @@ I'll run all the tests, build the site, put it live on Cloudflare and push the c
    - [ ] You see **"Payment received — thank you"** with a code like `SKB-1A2B3C4D`
    - [ ] **Email to you as the client:** "Booking received – SKB-…" (check Spam the first time and mark it **Not spam**)
    - [ ] **Email to your Gmail:** "New paid booking SKB-…"
-   - [ ] **WhatsApp:** "✅ New paid booking SKB-…"
+   - [ ] **Telegram:** "✅ New paid booking SKB-…" with a WhatsApp link to the client
    - [ ] Open **https://ca-sk-basak-consultancy.in/manage**, enter your Gmail, get the 6-digit code from Gmail, type it in, and the booking shows as **paid**
    - [ ] Reply to the "Booking received" email. The reply should come back to your Gmail.
 5. Repeat with UPI `failure@razorpay`. You should see **"Payment not completed"**.
-6. Send a message from **https://ca-sk-basak-consultancy.in/contact**. You should get an email and a WhatsApp, and it appears under **/manage → Enquiries**.
+6. Send a message from **https://ca-sk-basak-consultancy.in/contact**. You should get an email and a Telegram alert, and it appears under **/manage → Enquiries**.
 
 If any box isn't ticked, tell me which one and I'll fix it.
 

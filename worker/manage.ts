@@ -2,7 +2,7 @@ import type { Env } from './env';
 import { verifyAccess } from './access';
 import { listBookings, listEnquiries, type BookingRow, type EnquiryRow } from './db';
 import { esc, bookingRef } from './email';
-import { waLink } from './whatsapp';
+import { waLink } from './notify';
 
 const HEADERS = { 'cache-control': 'no-store', 'x-robots-tag': 'noindex, nofollow', 'x-frame-options': 'DENY', 'referrer-policy': 'no-referrer' };
 const STATUSES = ['paid', 'pending', 'failed'] as const;

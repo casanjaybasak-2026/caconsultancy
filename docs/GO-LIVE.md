@@ -1,14 +1,14 @@
 # Go-live guide (Cloudflare edition)
 
-Everything runs on Cloudflare: domain, website, payment API, **D1 database**, **Email Routing**, and the **Access** login for your bookings page. Resend sends the automatic emails and CallMeBot sends WhatsApp alerts to your phone.
+Everything runs on Cloudflare: domain, website, payment API, **D1 database**, **Email Routing**, and the **Access** login for your bookings page. Resend sends the automatic emails and a Telegram bot sends instant alerts to your phone (CallMeBot WhatsApp is supported too, but its free bot is often full).
 
 ```
 Client books & pays ₹1,000 ─► Cloudflare Worker ─► D1 database "skb-bookings"
                                    ├─► Resend: receipt email to the client   (from booking@ca-sk-basak-consultancy.in)
                                    ├─► Resend: alert email to you
-                                   └─► CallMeBot: WhatsApp alert to your phone (with a tap-to-chat link to the client)
+                                   └─► Telegram: instant alert to your phone (with a tap-to-WhatsApp link to the client)
 Client replies to the email ─► Cloudflare Email Routing ─► your Gmail
-Contact-form enquiries ─► D1 + email + WhatsApp to you
+Contact-form enquiries ─► D1 + email + Telegram alert to you
 You view everything at https://ca-sk-basak-consultancy.in/manage (Cloudflare Access login)
 ```
 
@@ -44,10 +44,10 @@ You view everything at https://ca-sk-basak-consultancy.in/manage (Cloudflare Acc
 4. Click **Verify DNS records** and wait until it shows **Verified**.
 5. **API Keys → Create API key** → permission **Sending access** → copy the key (you only see it once).
 
-### Step 4: CallMeBot, for WhatsApp alerts to your phone (3 min, free)
-1. Get the current CallMeBot number from **callmebot.com → WhatsApp API** and save it in your contacts.
-2. From **your** WhatsApp, send it: `I allow callmebot to send me messages`
-3. It replies with your **apikey**. Copy it.
+### Step 4: Telegram, for instant alerts to your phone (5 min, free)
+1. Install Telegram and open **@BotFather** (the one with the blue tick). Send `/newbot`, then give it a name and a username ending in `bot`. Copy the **token**.
+2. Open your new bot, tap **Start** and send `hi`.
+3. In a browser, open `https://api.telegram.org/bot<TOKEN>/getUpdates` and copy the number after `"chat":{"id":`. That's your **chat ID**.
 
 ### Step 5: Razorpay test keys and webhook (10 min)
 1. **dashboard.razorpay.com** → switch to **Test mode** (toggle at the top).
@@ -85,9 +85,9 @@ I'll put them in `wrangler.jsonc` (`RAZORPAY_KEY_ID`, `ACCESS_TEAM_DOMAIN`, `ACC
 | `RAZORPAY_KEY_SECRET` | Step 5.2 |
 | `RAZORPAY_WEBHOOK_SECRET` | Step 5.4 (the password you made) |
 | `RESEND_API_KEY` | Step 3.5 |
-| `CALLMEBOT_API_KEY` | Step 4.3 |
+| `TELEGRAM_BOT_TOKEN` | Step 4.1 |
+| `TELEGRAM_CHAT_ID` | Step 4.3 |
 | `OWNER_EMAIL` | your Gmail (booking and enquiry alerts) |
-| `OWNER_WHATSAPP` | your WhatsApp number, e.g. `919830012345` |
 
 ### Step 9: Fill in your public details (old admin panel)
 At `https://ca-sk-basak-consultancy.in/admin`, log in:
@@ -106,11 +106,11 @@ Tell me "deploy". I'll run the tests, build, deploy with Wrangler, and push the 
    - [ ] The "Payment received" page shows `SKB-XXXXXXXX`
    - [ ] Receipt email in your inbox (from `booking@…`)
    - [ ] Alert email to your Gmail
-   - [ ] WhatsApp alert on your phone
+   - [ ] Telegram alert on your phone
    - [ ] `https://ca-sk-basak-consultancy.in/manage` → log in with the email code → the booking shows as **paid**
    - [ ] Reply to the receipt email → it arrives in your Gmail (via Email Routing)
 4. Try again with `failure@razorpay` → you should see "Payment not completed".
-5. Send a message from the **Contact** page → you get an email and a WhatsApp alert, and it appears in `/manage` → Enquiries.
+5. Send a message from the **Contact** page → you get an email and a Telegram alert, and it appears in `/manage` → Enquiries.
 
 ### Step 12: Switch to real payments
 1. Razorpay must have activated your account (it checks your Terms, Privacy, **Refund & Cancellation** and Contact pages, which are all on the site).
@@ -125,7 +125,7 @@ Tell me "deploy". I'll run the tests, build, deploy with Wrangler, and push the 
 **Plain settings** (`wrangler.jsonc` → `vars`, committed to the public repo, so no secrets or personal details): `RAZORPAY_KEY_ID`, `BOOKING_FROM_EMAIL` (`booking@ca-sk-basak-consultancy.in`), `CONSULTATION_FEE_PAISE` (`100000`), `SITE_URL`, `ACCESS_TEAM_DOMAIN`, `ACCESS_AUD`.
 Values in this file override dashboard values on every deploy, so change them here.
 
-**Secrets** (Cloudflare dashboard only): `RAZORPAY_KEY_SECRET`, `RAZORPAY_WEBHOOK_SECRET`, `RESEND_API_KEY`, `CALLMEBOT_API_KEY`, `OWNER_EMAIL`, `OWNER_WHATSAPP`.
+**Secrets** (Cloudflare dashboard only): `RAZORPAY_KEY_SECRET`, `RAZORPAY_WEBHOOK_SECRET`, `RESEND_API_KEY`, `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`, `OWNER_EMAIL` (optional WhatsApp via CallMeBot: `CALLMEBOT_API_KEY`, `OWNER_WHATSAPP`).
 
 **Database:**
 - Schema in `migrations/`. Apply new ones with `npx wrangler d1 migrations apply skb-bookings --remote`.

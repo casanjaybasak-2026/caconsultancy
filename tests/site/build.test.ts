@@ -25,7 +25,8 @@ describe.skipIf(!built)('built site', () => {
       titles.add(title);
       expect(attr(h, /<meta name="description" content="([^"]+)"/).length, p).toBeGreaterThan(50);
       expect(attr(h, /<link rel="canonical" href="([^"]+)"/), p).toBe(ORIGIN + (p === '/' ? '/' : p));
-      expect(h, p).toMatch(/<h1[^>]*>[\s\S]*?\S[\s\S]*?<\/h1>/);
+      const h1 = h.slice(h.indexOf('<h1'), h.indexOf('</h1>'));
+      expect(h1.replace(/<[^>]+>/g, '').trim().length, `${p} h1`).toBeGreaterThan(0);
     }
   });
 

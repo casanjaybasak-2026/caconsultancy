@@ -50,7 +50,7 @@ describe('POST /api/booking/verify', () => {
       'GET razorpay.com/v1/payments/': () => ({ id: 'pay_1', order_id: 'order_1', amount: 100000, currency: 'INR', status: 'captured', ...payment }),
       'POST /capture': () => ({}),
       'api.resend.com': () => ({ id: 'e1' }),
-      'api.callmebot.com': () => new Response('ok'),
+      'api.telegram.org': () => ({ ok: true }),
     });
     return { e, calls, ref: 'SKB-' + id.replace(/-/g, '').slice(0, 8).toUpperCase() };
   };
@@ -77,17 +77,19 @@ describe('POST /api/booking/verify', () => {
     expect(calls.some((c) => c.url.includes('/capture'))).toBe(true);
     expect((await getByOrder(e, 'order_1'))!.payment_status).toBe('paid');
   });
-  it('marks paid, emails client + owner and WhatsApps owner once; a repeat call sends nothing more', async () => {
+  it('marks paid, emails client + owner and alerts owner on Telegram once; a repeat call sends nothing more', async () => {
     const { e, calls, ref } = await setup();
     const res = await post(e, '/api/booking/verify', body);
     expect(await res.json()).toEqual({ ref });
     const emails = () => calls.filter((c) => c.url.includes('resend'));
-    const wa = () => calls.filter((c) => c.url.includes('callmebot'));
+    const wa = () => calls.filter((c) => c.url.includes('api.telegram.org'));
     expect(emails().map((c) => c.body.to[0])).toEqual(['asha@example.com', 'owner@test.in']);
     expect(emails()[0].body.reply_to).toBe('bookings@test.in');
     expect(wa().length).toBe(1);
-    expect(decodeURIComponent(wa()[0].url)).toContain(ref);
-    expect(wa()[0].url).toContain('phone=919830000000');
+    expect(wa()[0].url).toBe('https://api.telegram.org/bottg_token/sendMessage');
+    expect(wa()[0].body.chat_id).toBe('555');
+    expect(wa()[0].body.text).toContain(ref);
+    expect(wa()[0].body.text).toContain('https://wa.me/919830012345');
     const again = await post(e, '/api/booking/verify', body);
     expect(await again.json()).toEqual({ ref });
     expect(emails().length).toBe(2);
@@ -108,7 +110,7 @@ describe('POST /api/booking/webhook', () => {
     mockFetch({
       'GET razorpay.com/v1/payments/': () => ({ id: 'pay_1', order_id: 'order_1', amount: 100000, currency: 'INR', status: 'captured' }),
       'api.resend.com': () => ({}),
-      'api.callmebot.com': () => new Response('ok'),
+      'api.telegram.org': () => ({ ok: true }),
     });
     const raw = evt('payment.captured');
     expect((await post(e, '/api/booking/webhook', raw, { 'x-razorpay-signature': hmac('wh_secret', raw) })).status).toBe(200);
@@ -122,9 +124,9 @@ describe('POST /api/booking/webhook', () => {
 });
 
 describe('POST /api/enquiry', () => {
-  it('validates, stores, emails owner and WhatsApps owner', async () => {
+  it('validates, stores, emails owner and alerts owner on Telegram', async () => {
     const e = freshEnv();
-    const calls = mockFetch({ 'api.resend.com': () => ({}), 'api.callmebot.com': () => new Response('ok') });
+    const calls = mockFetch({ 'api.resend.com': () => ({}), 'api.telegram.org': () => ({ ok: true }) });
     const bad = await post(e, '/api/enquiry', { name: 'A', email: 'x', phone: '1', message: '' });
     expect(bad.status).toBe(400);
     const res = await post(e, '/api/enquiry', { name: 'Bina Das', email: 'bina@example.com', phone: '9830012345', message: 'Need GST registration help' });
@@ -134,10 +136,26 @@ describe('POST /api/enquiry', () => {
     const mail = calls.find((c) => c.url.includes('resend'))!;
     expect(mail.body.to).toEqual(['owner@test.in']);
     expect(mail.body.reply_to).toBe('bina@example.com');
-    expect(calls.some((c) => c.url.includes('callmebot'))).toBe(true);
+    expect(calls.find((c) => c.url.includes('api.telegram.org'))!.body.text).toContain('https://wa.me/919830012345');
   });
   it('honeypot submissions are rejected', async () => {
     mockFetch({});
     expect((await post(freshEnv(), '/api/enquiry', { name: 'Bot', email: 'b@b.co', phone: '9830012345', message: 'spam spam', website: 'x' })).status).toBe(400);
+  });
+});
+
+describe('owner alert channels', () => {
+  it('sends nothing when no channel is configured, and uses CallMeBot when only it is set', async () => {
+    const { notifyOwner } = await import('../../worker/notify');
+    const calls = mockFetch({ 'api.callmebot.com': () => new Response('ok') });
+    await notifyOwner({ ...freshEnv(), TELEGRAM_BOT_TOKEN: '', TELEGRAM_CHAT_ID: '' }, 'x');
+    expect(calls.length).toBe(0);
+    await notifyOwner({ ...freshEnv(), TELEGRAM_BOT_TOKEN: '', CALLMEBOT_API_KEY: 'k', OWNER_WHATSAPP: '919830000000' }, 'hello');
+    expect(calls[0].url).toContain('phone=919830000000');
+  });
+  it('a failing Telegram call does not break the booking flow', async () => {
+    const { notifyOwner } = await import('../../worker/notify');
+    mockFetch({ 'api.telegram.org': () => new Response('bad', { status: 400 }) });
+    await expect(notifyOwner(freshEnv(), 'x')).resolves.toBeUndefined();
   });
 });

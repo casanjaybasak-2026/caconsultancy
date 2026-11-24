@@ -18,9 +18,22 @@ export async function fetchTable<T>(table: string, query: string, opts: { url?: 
   const base = opts.url ?? URL_;
   const key = opts.key ?? ANON;
   if (!base || !key) throw new Error('PUBLIC_SUPABASE_URL / PUBLIC_SUPABASE_ANON_KEY missing');
-  const res = await fetch(`${base}/rest/v1/${table}?${query}`, { headers: { apikey: key, Authorization: `Bearer ${key}` } });
-  if (!res.ok) throw new Error(`Supabase ${table} fetch failed: ${res.status}`);
-  return (await res.json()) as T[];
+  let lastErr: unknown;
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try {
+      const res = await fetch(`${base}/rest/v1/${table}?${query}`, {
+        headers: { apikey: key, Authorization: `Bearer ${key}` },
+        signal: AbortSignal.timeout(15_000),
+      });
+      if (res.ok) return (await res.json()) as T[];
+      lastErr = new Error(`Supabase ${table} fetch failed: ${res.status}`);
+      if (res.status < 500) break; // client errors won't fix themselves
+    } catch (err) {
+      lastErr = err;
+    }
+    if (attempt < 3) await new Promise((r) => setTimeout(r, attempt * 1000));
+  }
+  throw lastErr instanceof Error ? lastErr : new Error(`Supabase ${table} fetch failed`);
 }
 
 function cached<T>(k: string, f: () => Promise<T>): Promise<T> {

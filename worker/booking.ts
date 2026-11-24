@@ -3,7 +3,7 @@ import { json } from './http';
 import { createOrder, fetchPayment, capturePayment, feePaise, verifyCheckoutSignature, verifyWebhookSignature } from './razorpay';
 import { insertPendingBooking, markPaid, markFailed, getByOrder, insertEnquiry } from './db';
 import { sendBookingEmails, sendEnquiryEmail, bookingRef } from './email';
-import { notifyOwnerWhatsApp, waLink } from './whatsapp';
+import { notifyOwner, waLink } from './notify';
 
 export const CLIENT_TYPES = ['Individual', 'Professional', 'MSME / Startup', 'Business / Company'] as const;
 export const COMM_METHODS = ['Phone Call', 'Video Call', 'WhatsApp', 'In-person', 'Email'] as const;
@@ -94,7 +94,7 @@ async function settle(env: Env, orderId: string, paymentId: string): Promise<{ o
     const ref = bookingRef(b.id);
     await Promise.all([
       sendBookingEmails(env, b, paymentId),
-      notifyOwnerWhatsApp(env, `✅ New paid booking ${ref}\n${b.name} · ${b.phone}\n${b.service ?? 'Service not specified'}\nPreferred: ${b.preferred_date ?? '-'} ${b.preferred_time ?? ''} (${b.communication_method})\nChat: ${waLink(b.phone)}\nAll bookings: ${env.SITE_URL}/manage`),
+      notifyOwner(env, `✅ New paid booking ${ref}\n${b.name} · ${b.phone}\n${b.service ?? 'Service not specified'}\nPreferred: ${b.preferred_date ?? '-'} ${b.preferred_time ?? ''} (${b.communication_method})\nWhatsApp client: ${waLink(b.phone)}\nAll bookings: ${env.SITE_URL}/manage`),
     ]);
     return { ok: true, ref };
   }
@@ -151,7 +151,7 @@ export async function handleEnquiry(req: Request, env: Env): Promise<Response> {
   const e = await insertEnquiry(env, v.value);
   await Promise.all([
     sendEnquiryEmail(env, e),
-    notifyOwnerWhatsApp(env, `📩 New enquiry from ${e.name} · ${e.phone}\n${e.service ?? ''}\n${e.message.slice(0, 300)}\nAll enquiries: ${env.SITE_URL}/manage`),
+    notifyOwner(env, `📩 New enquiry from ${e.name} · ${e.phone}\nWhatsApp: ${waLink(e.phone.startsWith('+') ? e.phone : '+91' + e.phone.replace(/\D/g, '').slice(-10))}\n${e.service ?? ''}\n${e.message.slice(0, 300)}\nAll enquiries: ${env.SITE_URL}/manage`),
   ]);
   return json({ ok: true });
 }

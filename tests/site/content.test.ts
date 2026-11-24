@@ -6,8 +6,16 @@ afterEach(() => vi.unstubAllGlobals());
 
 describe('content layer', () => {
   it('fetchTable throws on a failed response so the build fails loudly', async () => {
-    vi.stubGlobal('fetch', vi.fn(async () => new Response('x', { status: 500 })));
-    await expect(fetchTable('faqs', 'select=*', { url: 'https://sb.test', key: 'k' })).rejects.toThrow(/500/);
+    const f = vi.fn(async () => new Response('x', { status: 404 }));
+    vi.stubGlobal('fetch', f);
+    await expect(fetchTable('faqs', 'select=*', { url: 'https://sb.test', key: 'k' })).rejects.toThrow(/404/);
+    expect(f).toHaveBeenCalledTimes(1); // no pointless retries on client errors
+  });
+  it('fetchTable retries a transient failure and then succeeds', async () => {
+    let n = 0;
+    vi.stubGlobal('fetch', vi.fn(async () => (++n === 1 ? new Response('x', { status: 503 }) : new Response('[{"id":1}]'))));
+    await expect(fetchTable('faqs', 'select=*', { url: 'https://sb.test', key: 'k' })).resolves.toEqual([{ id: 1 }]);
+    expect(n).toBe(2);
   });
   it('empty site_config values keep the fallback', () => {
     const c = mergeSiteConfig([{ key: 'office_address', value: '' }, { key: 'contact_phone', value: ' 98300 ' }]);

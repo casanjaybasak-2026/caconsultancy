@@ -27,8 +27,8 @@
     ]
   },
   // Plain (non-secret) settings. Secrets are set with `wrangler secret put` or in the dashboard:
-  // RAZORPAY_KEY_SECRET, RAZORPAY_WEBHOOK_SECRET, RESEND_API_KEY, CALLMEBOT_API_KEY,
-  // OWNER_EMAIL, OWNER_WHATSAPP (kept out of this public repo for privacy)
+  // RAZORPAY_KEY_SECRET, RAZORPAY_WEBHOOK_SECRET, RESEND_API_KEY, TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID,
+  // OWNER_EMAIL (optional: CALLMEBOT_API_KEY, OWNER_WHATSAPP) (kept out of this public repo for privacy)
   "vars": {
     "RAZORPAY_KEY_ID": "rzp_test_REPLACE_ME",
     "BOOKING_FROM_EMAIL": "booking@ca-sk-basak-consultancy.in",

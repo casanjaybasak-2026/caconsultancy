@@ -4,7 +4,7 @@ Everything runs on Cloudflare: domain, website, payment API, **D1 database**, **
 
 ```
 Client books & pays ₹1,000 ─► Cloudflare Worker ─► D1 database "skb-bookings"
-                                   ├─► Resend: receipt email to the client   (from bookings@ca-sk-basak-consultancy.in)
+                                   ├─► Resend: receipt email to the client   (from booking@ca-sk-basak-consultancy.in)
                                    ├─► Resend: alert email to you
                                    └─► CallMeBot: WhatsApp alert to your phone (with a tap-to-chat link to the client)
 Client replies to the email ─► Cloudflare Email Routing ─► your Gmail
@@ -32,7 +32,7 @@ You view everything at https://ca-sk-basak-consultancy.in/manage (Cloudflare Acc
 2. Click **Add records and enable**. Cloudflare adds the MX and SPF records itself.
 3. **Destination addresses → Add destination address** → your Gmail → open Gmail and click **Verify**.
 4. **Routing rules → Create address:**
-   - `bookings` → Send to → your Gmail
+   - `booking` → Send to → your Gmail
    - `info` → Send to → your Gmail
 5. Test it: from another email account, send a message to `info@ca-sk-basak-consultancy.in`. It should arrive in Gmail.
 
@@ -72,14 +72,12 @@ You view everything at https://ca-sk-basak-consultancy.in/manage (Cloudflare Acc
 | What | Example |
 |---|---|
 | Razorpay **test Key ID** | `rzp_test_xxxxxxxx` |
-| Gmail for booking alerts | `you@gmail.com` |
-| Your WhatsApp number (country code, no +) | `919830012345` |
 | Access **team domain** | `skbasak.cloudflareaccess.com` |
 | Access **AUD tag** | long code from Step 6.4 |
 
-I'll put them in `wrangler.jsonc` (`RAZORPAY_KEY_ID`, `OWNER_EMAIL`, `OWNER_WHATSAPP`, `ACCESS_TEAM_DOMAIN`, `ACCESS_AUD`).
+I'll put them in `wrangler.jsonc` (`RAZORPAY_KEY_ID`, `ACCESS_TEAM_DOMAIN`, `ACCESS_AUD`). Your Gmail and WhatsApp number are secrets (Step 8) because the GitHub repo is public.
 
-### Step 8: Add the four secrets in Cloudflare (yourself; never paste these in chat)
+### Step 8: Add the six secrets in Cloudflare (yourself; never paste these in chat)
 **Workers & Pages → caconsultancyservice → Settings → Variables and Secrets → + Add**, Type **Secret**:
 
 | Name | Value from |
@@ -88,6 +86,8 @@ I'll put them in `wrangler.jsonc` (`RAZORPAY_KEY_ID`, `OWNER_EMAIL`, `OWNER_WHAT
 | `RAZORPAY_WEBHOOK_SECRET` | Step 5.4 (the password you made) |
 | `RESEND_API_KEY` | Step 3.5 |
 | `CALLMEBOT_API_KEY` | Step 4.3 |
+| `OWNER_EMAIL` | your Gmail (booking and enquiry alerts) |
+| `OWNER_WHATSAPP` | your WhatsApp number, e.g. `919830012345` |
 
 ### Step 9: Fill in your public details (old admin panel)
 At `https://ca-sk-basak-consultancy.in/admin`, log in:
@@ -104,7 +104,7 @@ Tell me "deploy". I'll run the tests, build, deploy with Wrangler, and push the 
 2. In Razorpay checkout choose **UPI** → enter `success@razorpay`.
 3. Check each of these:
    - [ ] The "Payment received" page shows `SKB-XXXXXXXX`
-   - [ ] Receipt email in your inbox (from `bookings@…`)
+   - [ ] Receipt email in your inbox (from `booking@…`)
    - [ ] Alert email to your Gmail
    - [ ] WhatsApp alert on your phone
    - [ ] `https://ca-sk-basak-consultancy.in/manage` → log in with the email code → the booking shows as **paid**
@@ -122,10 +122,10 @@ Tell me "deploy". I'll run the tests, build, deploy with Wrangler, and push the 
 
 ## Reference
 
-**Plain settings** (`wrangler.jsonc` → `vars`, committed to Git, so no secrets): `RAZORPAY_KEY_ID`, `OWNER_EMAIL`, `OWNER_WHATSAPP`, `BOOKING_FROM_EMAIL` (`bookings@ca-sk-basak-consultancy.in`), `CONSULTATION_FEE_PAISE` (`100000`), `SITE_URL`, `ACCESS_TEAM_DOMAIN`, `ACCESS_AUD`.
+**Plain settings** (`wrangler.jsonc` → `vars`, committed to the public repo, so no secrets or personal details): `RAZORPAY_KEY_ID`, `BOOKING_FROM_EMAIL` (`booking@ca-sk-basak-consultancy.in`), `CONSULTATION_FEE_PAISE` (`100000`), `SITE_URL`, `ACCESS_TEAM_DOMAIN`, `ACCESS_AUD`.
 Values in this file override dashboard values on every deploy, so change them here.
 
-**Secrets** (Cloudflare dashboard only): `RAZORPAY_KEY_SECRET`, `RAZORPAY_WEBHOOK_SECRET`, `RESEND_API_KEY`, `CALLMEBOT_API_KEY`.
+**Secrets** (Cloudflare dashboard only): `RAZORPAY_KEY_SECRET`, `RAZORPAY_WEBHOOK_SECRET`, `RESEND_API_KEY`, `CALLMEBOT_API_KEY`, `OWNER_EMAIL`, `OWNER_WHATSAPP`.
 
 **Database:**
 - Schema in `migrations/`. Apply new ones with `npx wrangler d1 migrations apply skb-bookings --remote`.

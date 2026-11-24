@@ -86,7 +86,7 @@ repo root
    - only if this call changed the row: sends the emails (step 6);
    - returns a booking reference. The browser redirects to `/booking/success?ref=…`.
 5. **Webhook** `POST /api/booking/webhook` (events `payment.captured`, `order.paid`, `payment.failed`). The Worker checks `X-Razorpay-Signature` with WEBHOOK_SECRET against the raw body, then applies the same idempotent "mark paid + email" step, or marks the booking `failed`. This covers clients who close the tab before step 4 completes.
-6. **Emails** (Resend API, from `bookings@ca-sk-basak-consultancy.in`):
+6. **Emails** (Resend API, from `booking@ca-sk-basak-consultancy.in`):
    - To the client: payment receipt (amount, payment ID, booking ref), the details they submitted, and "We'll confirm your slot and send a Google Meet link within 1 working day."
    - To the owner (OWNER_EMAIL): the booking details and a link to the admin appointments page.
 7. **Success page:** a summary, the booking ref and a **WhatsApp button** (`wa.me/<number>` with a prefilled message containing the booking ref).
@@ -133,7 +133,7 @@ Component structure, exact copy wording (based on current site content), how str
 The owner asked to use Cloudflare instead of Supabase, a domain email address, Resend for automatic emails, and WhatsApp alerts. Phase 1 (done):
 - **Bookings and enquiries** are stored in **Cloudflare D1** (`skb-bookings`, schema in `migrations/`), replacing the Supabase `appointments` change. Paid-once logic uses an atomic `UPDATE … WHERE payment_status <> 'paid' RETURNING *`.
 - **Contact form** posts to `POST /api/enquiry` on the Worker (D1 + owner email + WhatsApp) instead of writing to Supabase from the browser.
-- **Emails** are sent by Resend from `bookings@ca-sk-basak-consultancy.in`. Client replies go to that address, which **Cloudflare Email Routing** forwards to the owner's Gmail.
+- **Emails** are sent by Resend from `booking@ca-sk-basak-consultancy.in`. Client replies go to that address, which **Cloudflare Email Routing** forwards to the owner's Gmail.
 - **WhatsApp alerts** go to the owner's own number via CallMeBot (secret `CALLMEBOT_API_KEY`, var `OWNER_WHATSAPP`). Messaging clients on WhatsApp would need the Meta WhatsApp Business API and is out of scope.
 - **`/manage`** is a Worker-rendered list of bookings and enquiries with CSV export. It's protected by **Cloudflare Access**, and the Worker also verifies the Access JWT (RS256, audience, issuer, expiry), failing closed if not configured.
 

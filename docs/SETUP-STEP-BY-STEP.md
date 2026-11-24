@@ -9,8 +9,8 @@
 
 | Step | Status |
 |---|---|
-| 1. Domain / SSL | ⚠️ `www.` shows an error (522) and `http://` doesn't switch to `https://` |
-| 2. Email Routing | ❌ Not turned on yet |
+| 1. Domain / SSL | ✅ `www` added, HTTPS forced |
+| 2. Email Routing | ✅ Enabled; `info@` and `booking@` forward to Gmail |
 | 3. Resend | 🟡 DNS records are **already added** (Tokyo). You still need to confirm "Verified" and create an API key |
 | 4. CallMeBot | ❓ I can't check this; it's on your phone |
 | 5. Razorpay | ❓ I can't check this; it's in your Razorpay account |
@@ -55,7 +55,7 @@
 5. Cloudflare shows the DNS records it needs. Click **Add records and enable**.
 6. **Open your Gmail.** Find the email from Cloudflare ("Verify your email address") and click **Verify email address**.
 7. Back in Cloudflare, go to **Email Routing → Routing rules → Create address**:
-   - Custom address: `bookings`
+   - Custom address: `booking`
    - Action: **Send to an email**
    - Destination: your Gmail
    - Click **Save**.
@@ -63,7 +63,7 @@
 ✅ **It worked when:**
 - the **Email Routing** page shows a green **Enabled**;
 - **Destination addresses** shows your Gmail as **Verified**;
-- **Routing rules** lists both `info@` and `bookings@`;
+- **Routing rules** lists both `info@` and `booking@`;
 - **Test:** from any other email account (or a friend's phone), send a message to `info@ca-sk-basak-consultancy.in`. It should land in your Gmail within a minute. Check the Spam folder too.
 
 ❗ **If you see "DNS records conflict"**, click **Fix records** or let Cloudflare replace them. Don't touch the records starting with `send` or `resend._domainkey`; those belong to Resend.
@@ -156,19 +156,19 @@
 
 ---
 
-## Step 7: Send me these 5 things in chat (they're not secrets)
+## Step 7: Send me these 3 things in chat (they're not secrets)
 
 ```
 Razorpay test Key Id:   rzp_test_...
-Alert Gmail:            you@gmail.com
-WhatsApp number:        91XXXXXXXXXX   (country code, no + or spaces)
 Access team domain:     yourteam.cloudflareaccess.com
 Access AUD tag:         ...
 ```
 
+Your Gmail and WhatsApp number go into Cloudflare as secrets in Step 8, so they never appear in the public GitHub repo.
+
 ---
 
-## Step 8: Add 4 secrets in Cloudflare (5 min, do this yourself)
+## Step 8: Add 6 secrets in Cloudflare (5 min, do this yourself)
 
 1. Cloudflare → **Workers & Pages → caconsultancyservice → Settings**.
 2. Find **Variables and Secrets** and click **+ Add**.
@@ -184,8 +184,10 @@ Access AUD tag:         ...
 | `RAZORPAY_WEBHOOK_SECRET` | the webhook password you made (Step 5.5) |
 | `RESEND_API_KEY` | the `re_…` key (Step 3.5) |
 | `CALLMEBOT_API_KEY` | the APIKEY number (Step 4.5) |
+| `OWNER_EMAIL` | your Gmail, where booking and enquiry alerts go |
+| `OWNER_WHATSAPP` | your WhatsApp number with country code, no + or spaces (e.g. `919830012345`) |
 
-✅ **It worked when:** all four names appear in the list, each showing as **Secret** with the value hidden.
+✅ **It worked when:** all six names appear in the list, each showing as **Secret** with the value hidden.
 
 👉 Type **"check step 8"**. I can see the names (never the values).
 

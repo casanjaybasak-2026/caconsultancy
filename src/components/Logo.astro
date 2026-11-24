@@ -1,0 +1,11 @@
+---
+interface Props { light?: boolean }
+const { light = false } = Astro.props;
+---
+<a href="/" class:list={['flex items-center gap-3 no-underline group', light ? 'text-paper' : 'text-navy-deep']} aria-label="CA S K Basak — home">
+  <span class:list={['grid size-10 place-items-center rounded-full font-display text-[15px] font-semibold ring-1', light ? 'bg-paper text-navy-deep ring-gold-soft' : 'bg-navy text-paper ring-gold/60']} aria-hidden="true">CA</span>
+  <span class="leading-tight">
+    <span class="block font-display text-lg font-semibold tracking-tight">S K Basak</span>
+    <span class:list={['block text-[11px] font-medium uppercase tracking-[0.16em]', light ? 'text-gold-soft' : 'text-gold-ink']}>Chartered Accountant</span>
+  </span>
+</a>

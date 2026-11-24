@@ -1,0 +1,78 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHero from '../components/PageHero.astro';
+import PlanCard from '../components/PlanCard.astro';
+import Icon from '../components/Icon.astro';
+import CtaBand from '../components/CtaBand.astro';
+import { MONITORS, BILLING_NOTE, type Monitor } from '../data/monitors';
+import { getPlans, type Plan } from '../lib/content';
+import { serviceJsonLd, planOffers, breadcrumbJsonLd, abs, faqJsonLd } from '../lib/seo';
+
+export async function getStaticPaths() {
+  return Promise.all(MONITORS.map(async (m) => ({ params: { monitor: m.slug }, props: { m, plans: await getPlans(m.product) } })));
+}
+const { m, plans } = Astro.props as { m: Monitor; plans: Plan[] };
+const url = abs(`/${m.slug}`);
+const signup = `/${m.slug}/signup`;
+const login = `/${m.slug}/login`;
+const faqs = [
+  { question: `How much does the ${m.nav} service cost?`, answer: `Plans start at ₹${Math.min(...plans.map((p) => p.price_inr)).toLocaleString('en-IN')} per month. ${plans.map((p) => `${p.name}: ₹${p.price_inr.toLocaleString('en-IN')}/month`).join('; ')}. All plans are billed monthly and can be cancelled before the next billing date.` },
+  { question: 'Is a CA involved?', answer: 'The automated plans generate dashboards and reports from the data you supply. The CA Review tier adds a review of exceptions and professional observations by CA S K Basak, limited to the agreed scope.' },
+  { question: 'Does this guarantee a loan approval or a particular result?', answer: 'No. The service provides management information for planning and monitoring. Decisions by banks and financial institutions are made independently.' },
+];
+---
+<Base title={m.title} description={m.description} path={`/${m.slug}`}
+  jsonLd={[serviceJsonLd({ name: m.nav, description: m.description, url, offers: planOffers(plans, abs(signup)) }), faqJsonLd(faqs), breadcrumbJsonLd([['Home', '/'], [m.nav, `/${m.slug}`]])]}>
+  <PageHero eyebrow="Recurring monthly service" title={m.h1} lead={m.lead} crumbs={[['Home', '/'], [m.nav, `/${m.slug}`]]}>
+    {m.intro && <p class="mt-4 max-w-2xl">{m.intro}</p>}
+    <div class="mt-8 flex flex-col gap-3 sm:flex-row">
+      <a href={signup} class="btn-primary">{m.cta} <Icon name="arrow" size={18} /></a>
+      <a href="#plans" class="btn-ghost">View plans</a>
+      <a href={login} class="btn inline-flex text-navy underline-offset-4 hover:underline">Existing user? Log in</a>
+    </div>
+  </PageHero>
+
+  <section class="section">
+    <div class="container-x grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+      {m.features.map(([t, d]) => (
+        <div class="card p-6">
+          <span class="grid size-10 place-items-center rounded-lg bg-blue-soft text-navy"><Icon name="check" size={20} /></span>
+          <h2 class="mt-4 text-lg">{t}</h2>
+          <p class="mt-1.5 text-[15px]">{d}</p>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  {m.why && (
+    <section class="container-x pb-4">
+      <div class="rounded-2xl border border-line bg-paper-dim p-8 sm:p-10">
+        <h2 class="text-2xl sm:text-3xl">{m.why.heading}</h2>
+        <p class="mt-3 max-w-3xl text-[17px]">{m.why.body}</p>
+      </div>
+    </section>
+  )}
+
+  <section id="plans" class="section scroll-mt-20">
+    <div class="container-x">
+      <p class="eyebrow mb-3">Plans</p>
+      <h2 class="text-3xl sm:text-4xl">Choose your plan</h2>
+      <p class="mt-3 max-w-2xl">All plans are billed monthly. {BILLING_NOTE}</p>
+      <div class="mt-12 grid gap-6 lg:grid-cols-3">
+        {plans.map((p, i) => <PlanCard plan={p} href={`${signup}?plan=${p.code}`} featured={i === 1} />)}
+      </div>
+    </div>
+  </section>
+
+  <section class="section bg-paper-dim">
+    <div class="container-x grid gap-10 lg:grid-cols-[1fr_1.6fr]">
+      <h2 class="text-3xl">Questions about this service</h2>
+      <div class="space-y-6">
+        {faqs.map((f) => <div><h3 class="font-sans text-lg font-semibold">{f.question}</h3><p class="mt-1.5">{f.answer}</p></div>)}
+      </div>
+    </div>
+  </section>
+
+  <section class="container-x py-10"><p class="max-w-4xl text-sm text-muted"><strong class="text-ink-soft">Important:</strong> {m.disclaimer}</p></section>
+  <CtaBand title="Prefer to talk it through first?" body="Book a one-to-one consultation to discuss whether monthly monitoring fits your business." />
+</Base>

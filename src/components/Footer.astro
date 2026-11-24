@@ -1,0 +1,41 @@
+---
+import Logo from './Logo.astro';
+import Icon from './Icon.astro';
+import { getSiteConfig } from '../lib/content';
+import { MONITORS } from '../data/monitors';
+const cfg = await getSiteConfig();
+const year = new Date().getFullYear();
+const services = [['/services', 'All services'], ['/individuals', 'For individuals'], ['/business', 'For business & MSME'], ['/appointment', 'Book a consultation'], ['/resources', 'Resources & guides']];
+const legal = [['/privacy-policy', 'Privacy policy'], ['/terms', 'Terms of use'], ['/refund-policy', 'Refund & cancellation'], ['/disclaimer', 'Disclaimer'], ['/cookie-policy', 'Cookie policy']];
+---
+<footer class="bg-navy-deep text-paper/75">
+  <div class="container-x grid gap-12 py-16 sm:grid-cols-2 lg:grid-cols-[1.3fr_1fr_1fr_1fr]">
+    <div class="space-y-5">
+      <Logo light />
+      <p class="max-w-xs text-sm leading-relaxed">Practical tax, accounting, compliance and business advisory for individuals, professionals and MSMEs — from Kolkata, for clients across India.</p>
+      <address class="not-italic space-y-2.5 text-sm">
+        {cfg.contact_phone && <a href={`tel:${cfg.contact_phone.replace(/\s/g, '')}`} class="flex items-center gap-2.5 text-paper/85 no-underline hover:text-gold-soft"><Icon name="phone" size={16} />{cfg.contact_phone}</a>}
+        {cfg.contact_email && <a href={`mailto:${cfg.contact_email}`} class="flex items-center gap-2.5 text-paper/85 no-underline hover:text-gold-soft"><Icon name="mail" size={16} />{cfg.contact_email}</a>}
+        <p class="flex items-start gap-2.5"><Icon name="pin" size={16} class="mt-0.5 shrink-0" />{cfg.office_address}</p>
+      </address>
+    </div>
+    <nav aria-label="Services">
+      <h2 class="mb-4 font-sans text-xs font-semibold uppercase tracking-[0.18em] text-gold-soft">Practice</h2>
+      <ul class="space-y-2.5 text-sm">{services.map(([h, l]) => <li><a href={h} class="text-paper/75 no-underline hover:text-paper">{l}</a></li>)}</ul>
+    </nav>
+    <nav aria-label="Monitoring tools">
+      <h2 class="mb-4 font-sans text-xs font-semibold uppercase tracking-[0.18em] text-gold-soft">Monitoring tools</h2>
+      <ul class="space-y-2.5 text-sm">{MONITORS.map((m) => <li><a href={`/${m.slug}`} class="text-paper/75 no-underline hover:text-paper">{m.nav}</a></li>)}</ul>
+    </nav>
+    <nav aria-label="Legal">
+      <h2 class="mb-4 font-sans text-xs font-semibold uppercase tracking-[0.18em] text-gold-soft">Legal</h2>
+      <ul class="space-y-2.5 text-sm">{legal.map(([h, l]) => <li><a href={h} class="text-paper/75 no-underline hover:text-paper">{l}</a></li>)}</ul>
+    </nav>
+  </div>
+  <div class="border-t border-paper/10">
+    <div class="container-x flex flex-col gap-2 py-6 text-xs text-paper/55 sm:flex-row sm:justify-between">
+      <p>© {year} CA S K Basak. All rights reserved.</p>
+      <p>Information on this site is general in nature and is not professional advice. Advice is given only after a formal consultation.</p>
+    </div>
+  </div>
+</footer>

@@ -1,0 +1,23 @@
+---
+import Base from '../../layouts/Base.astro';
+import PageHero from '../../components/PageHero.astro';
+import ArticleCard from '../../components/ArticleCard.astro';
+import CtaBand from '../../components/CtaBand.astro';
+import { getArticles } from '../../lib/content';
+import { breadcrumbJsonLd, abs } from '../../lib/seo';
+const articles = await getArticles();
+const categories = [...new Set(articles.map((a) => a.category))];
+const itemList = { '@context': 'https://schema.org', '@type': 'ItemList', itemListElement: articles.map((a, i) => ({ '@type': 'ListItem', position: i + 1, url: abs(`/resources/${a.slug}`), name: a.title })) };
+---
+<Base title="Tax, GST & Business Finance Guides for India | CA S K Basak" description="Plain-English guides by a Chartered Accountant on income tax, GST, TDS, DSCR, CMA data, working capital and MSME finance in India." path="/resources" jsonLd={[itemList, breadcrumbJsonLd([['Home', '/'], ['Resources', '/resources']])]}>
+  <PageHero eyebrow="Resources" title="Practical guides on tax, GST and business finance" lead="Written by CA S K Basak in plain English, for individuals and business owners in India." crumbs={[['Home', '/'], ['Resources', '/resources']]}>
+    <ul class="mt-8 flex flex-wrap gap-2">{categories.map((c) => <li><a href={`#${c.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`} class="inline-block rounded-full border border-line bg-white px-4 py-2 text-sm font-medium text-navy-deep no-underline hover:border-navy">{c}</a></li>)}</ul>
+  </PageHero>
+  {categories.map((c) => (
+    <section id={c.toLowerCase().replace(/[^a-z0-9]+/g, '-')} class="container-x scroll-mt-28 py-12">
+      <h2 class="mb-6 text-2xl">{c}</h2>
+      <div class="grid gap-5 md:grid-cols-2 lg:grid-cols-3">{articles.filter((a) => a.category === c).map((a) => <ArticleCard article={a} />)}</div>
+    </section>
+  ))}
+  <CtaBand title="Have a question about your own situation?" />
+</Base>

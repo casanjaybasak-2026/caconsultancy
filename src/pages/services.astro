@@ -1,0 +1,19 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHero from '../components/PageHero.astro';
+import ServiceCard from '../components/ServiceCard.astro';
+import CtaBand from '../components/CtaBand.astro';
+import { getServices } from '../lib/content';
+import { serviceJsonLd, breadcrumbJsonLd, abs } from '../lib/seo';
+const services = await getServices();
+---
+<Base title="CA Services in Kolkata: Income Tax, GST, Audit & Accounting | CA S K Basak" description="Income tax, GST, audit, accounting, business consulting, loan and project advisory, forensic analysis and Excel automation from a Kolkata Chartered Accountant." path="/services"
+  jsonLd={[...services.map((s) => serviceJsonLd({ name: s.title, description: s.description, url: abs(`/services#${s.slug}`) })), breadcrumbJsonLd([['Home', '/'], ['Services', '/services']])]}>
+  <PageHero eyebrow="Services" title="Chartered accountancy services" lead="Tax, compliance, audit, accounting and advisory support for individuals, professionals, MSMEs and businesses — scoped to your actual requirement." crumbs={[['Home', '/'], ['Services', '/services']]} />
+  <section class="section">
+    <div class="container-x grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+      {services.map((s, i) => <ServiceCard service={s} index={i} detailed />)}
+    </div>
+  </section>
+  <CtaBand title="Not sure which service you need?" body="Book a consultation and describe your situation — we'll tell you what applies and what it involves." />
+</Base>

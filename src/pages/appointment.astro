@@ -1,0 +1,47 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHero from '../components/PageHero.astro';
+import BookingForm from '../components/BookingForm.astro';
+import FaqList from '../components/FaqList.astro';
+import Icon from '../components/Icon.astro';
+import { serviceJsonLd, faqJsonLd, breadcrumbJsonLd, abs } from '../lib/seo';
+import { SITE } from '../config/site';
+const faqs = [
+  { question: 'How much does a consultation cost?', answer: 'A one-to-one consultation with CA S K Basak costs ₹1,000 including GST, paid online when you book.' },
+  { question: 'How do I pay?', answer: 'Payment is taken securely through Razorpay. You can pay by UPI, debit or credit card, or net banking. You receive an email receipt with a booking reference immediately.' },
+  { question: 'When will my consultation happen?', answer: "After payment we review your requirement and confirm a slot by email or WhatsApp within one working day, close to your preferred date and time. For video calls you'll receive a Google Meet link." },
+  { question: 'Can I reschedule or cancel?', answer: 'You can reschedule free of charge with at least 24 hours notice. Cancellations made at least 24 hours before the slot are refunded in full. See the refund & cancellation policy for details.' },
+  { question: 'Do you consult with clients outside Kolkata?', answer: 'Yes. Most consultations happen by video or phone, so clients anywhere in India can book.' },
+];
+---
+<Base title="Book a CA Consultation Online (₹1,000) | CA S K Basak, Kolkata" description="Book a one-to-one consultation with Chartered Accountant CA S K Basak for ₹1,000 incl. GST. Pay securely via Razorpay; slot confirmed within one working day." path="/appointment"
+  jsonLd={[serviceJsonLd({ name: 'One-to-one consultation with a Chartered Accountant', description: 'Paid consultation on income tax, GST, audit, accounting, loans or business finance, by video, phone or in person.', url: abs('/appointment'), offers: [{ '@type': 'Offer', price: String(SITE.feeRupees), priceCurrency: 'INR', url: abs('/appointment'), availability: 'https://schema.org/InStock' }] }), faqJsonLd(faqs), breadcrumbJsonLd([['Home', '/'], ['Book a consultation', '/appointment']])]}>
+  <Fragment slot="head"><script src="https://checkout.razorpay.com/v1/checkout.js" defer></script></Fragment>
+  <PageHero eyebrow="Book a consultation" title="Book a one-to-one consultation" lead="Tell us what you need, pay the ₹1,000 fee securely, and we'll confirm your slot within one working day." crumbs={[['Home', '/'], ['Book a consultation', '/appointment']]} />
+  <section class="section">
+    <div class="container-x grid gap-10 lg:grid-cols-[1.6fr_1fr]">
+      <BookingForm />
+      <aside class="space-y-5 lg:sticky lg:top-28 lg:h-fit">
+        <div class="card p-7">
+          <h2 class="text-xl">What happens next</h2>
+          <ol class="mt-5 space-y-4 text-[15px]">
+            {[['card', 'Pay ₹1,000 via Razorpay', 'Instant email receipt with your booking reference.'], ['check', 'We confirm your slot', 'By email or WhatsApp within one working day.'], ['video', 'Consult', 'Google Meet, phone or in person — your choice.']].map(([i, t, d]) => (
+              <li class="flex gap-3"><span class="grid size-9 shrink-0 place-items-center rounded-full bg-navy text-paper"><Icon name={i} size={16} /></span><div><p class="font-semibold text-navy-deep">{t}</p><p>{d}</p></div></li>
+            ))}
+          </ol>
+        </div>
+        <p class="rounded-xl border-l-4 border-gold bg-paper-dim p-5 text-sm">Reschedule free with 24 hours notice. <a href="/refund-policy">Refund &amp; cancellation policy</a>.</p>
+      </aside>
+    </div>
+  </section>
+  <section class="section bg-paper-dim">
+    <div class="container-x grid gap-10 lg:grid-cols-[1fr_1.6fr]">
+      <h2 class="text-3xl">Booking questions</h2>
+      <FaqList faqs={faqs} />
+    </div>
+  </section>
+</Base>
+<script>
+  import { initBooking } from '../scripts/booking';
+  initBooking();
+</script>

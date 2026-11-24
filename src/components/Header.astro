@@ -1,0 +1,62 @@
+---
+import Logo from './Logo.astro';
+import Icon from './Icon.astro';
+import { MONITORS } from '../data/monitors';
+interface Props { path: string }
+const { path } = Astro.props;
+const nav = [
+  ['/services', 'Services'],
+  ['/individuals', 'Individuals'],
+  ['/business', 'Business & MSME'],
+  ['/resources', 'Resources'],
+  ['/about', 'About'],
+  ['/contact', 'Contact'],
+];
+const active = (href: string) => path === href || path.startsWith(href + '/');
+---
+<header class="sticky top-0 z-40 border-b border-line/80 bg-paper/90 backdrop-blur supports-[backdrop-filter]:bg-paper/80">
+  <div class="container-x flex h-[72px] items-center justify-between gap-4">
+    <Logo />
+    <nav aria-label="Main" class="hidden xl:block">
+      <ul class="flex items-center gap-1 whitespace-nowrap text-[15px] font-medium">
+        {nav.map(([href, label]) => (
+          <li><a href={href} class:list={['rounded-full px-3 py-2 no-underline transition-colors hover:text-navy-deep hover:bg-paper-dim', active(href) ? 'text-navy-deep bg-paper-dim' : 'text-ink-soft']} aria-current={active(href) ? 'page' : undefined}>{label}</a></li>
+        ))}
+        <li class="relative group">
+          <button type="button" class="flex items-center gap-1 rounded-full px-3 py-2 text-ink-soft hover:bg-paper-dim hover:text-navy-deep" aria-haspopup="true" aria-expanded="false" data-tools-btn>
+            Monitoring tools <Icon name="chevron" size={16} />
+          </button>
+          <ul class="invisible absolute right-0 top-full w-72 translate-y-1 rounded-xl border border-line bg-white p-2 opacity-0 shadow-xl shadow-navy/5 transition group-hover:visible group-hover:translate-y-0 group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100" data-tools-menu>
+            {MONITORS.map((m) => <li><a href={`/${m.slug}`} class="block rounded-lg px-3 py-2.5 text-sm text-ink-soft no-underline hover:bg-paper-dim hover:text-navy-deep">{m.nav}</a></li>)}
+          </ul>
+        </li>
+      </ul>
+    </nav>
+    <div class="flex items-center gap-2">
+      <a href="/appointment" class="btn-primary hidden sm:inline-flex">Book consultation</a>
+      <button type="button" class="grid size-11 place-items-center rounded-full text-navy hover:bg-paper-dim xl:hidden" aria-controls="mobile-nav" aria-expanded="false" aria-label="Open menu" data-menu-btn>
+        <Icon name="menu" size={24} />
+      </button>
+    </div>
+  </div>
+  <nav id="mobile-nav" aria-label="Mobile" class="hidden border-t border-line bg-paper xl:hidden" data-menu>
+    <ul class="container-x space-y-1 py-4 text-base">
+      {nav.map(([href, label]) => <li><a href={href} class="block rounded-lg px-3 py-3 font-medium text-navy-deep no-underline hover:bg-paper-dim">{label}</a></li>)}
+      <li class="px-3 pt-3 eyebrow">Monitoring tools</li>
+      {MONITORS.map((m) => <li><a href={`/${m.slug}`} class="block rounded-lg px-3 py-2.5 text-ink-soft no-underline hover:bg-paper-dim">{m.nav}</a></li>)}
+      <li class="pt-3"><a href="/appointment" class="btn-primary w-full">Book consultation · ₹1,000</a></li>
+    </ul>
+  </nav>
+</header>
+<script>
+  const btn = document.querySelector<HTMLButtonElement>('[data-menu-btn]');
+  const menu = document.querySelector<HTMLElement>('[data-menu]');
+  btn?.addEventListener('click', () => {
+    const open = menu!.classList.toggle('hidden') === false;
+    btn.setAttribute('aria-expanded', String(open));
+    btn.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+  });
+  const tb = document.querySelector<HTMLButtonElement>('[data-tools-btn]');
+  tb?.parentElement?.addEventListener('mouseenter', () => tb.setAttribute('aria-expanded', 'true'));
+  tb?.parentElement?.addEventListener('mouseleave', () => tb.setAttribute('aria-expanded', 'false'));
+</script>

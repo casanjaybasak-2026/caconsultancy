@@ -1,0 +1,50 @@
+---
+import Base from '../../layouts/Base.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import ArticleCard from '../../components/ArticleCard.astro';
+import CtaBand from '../../components/CtaBand.astro';
+import { getArticles, type Article } from '../../lib/content';
+import { renderText, readingMinutes, plainExcerpt } from '../../lib/text';
+import { articleJsonLd, breadcrumbJsonLd } from '../../lib/seo';
+
+export async function getStaticPaths() {
+  const articles = await getArticles();
+  return articles.map((a) => ({ params: { slug: a.slug }, props: { article: a, related: articles.filter((x) => x.slug !== a.slug && x.category === a.category).concat(articles.filter((x) => x.slug !== a.slug && x.category !== a.category)).slice(0, 3) } }));
+}
+const { article: a, related } = Astro.props as { article: Article; related: Article[] };
+const description = plainExcerpt(a.excerpt || a.content);
+const fmt = (d: string) => new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' });
+const crumbs: [string, string][] = [['Home', '/'], ['Resources', '/resources'], [a.title, `/resources/${a.slug}`]];
+const updated = a.updated_at && a.updated_at.slice(0, 10) !== a.published_at.slice(0, 10);
+---
+<Base title={`${a.title} | CA S K Basak`} description={description} path={`/resources/${a.slug}`} ogType="article" jsonLd={[articleJsonLd(a, description), breadcrumbJsonLd(crumbs)]}>
+  <article>
+    <header class="border-b border-line bg-paper-dim">
+      <div class="container-x max-w-3xl py-14 sm:py-20">
+        <Breadcrumbs items={crumbs} />
+        <p class="eyebrow mb-4">{a.category}</p>
+        <h1 class="text-4xl leading-tight sm:text-5xl">{a.title}</h1>
+        <p class="mt-5 text-lg">{a.excerpt}</p>
+        <p class="mt-6 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted">
+          <span>By <a href="/about" rel="author" class="font-semibold">CA S K Basak</a>, Chartered Accountant</span>
+          <span aria-hidden="true">·</span><time datetime={a.published_at}>{fmt(a.published_at)}</time>
+          {updated && <><span aria-hidden="true">·</span><span>Updated <time datetime={a.updated_at}>{fmt(a.updated_at)}</time></span></>}
+          <span aria-hidden="true">·</span><span>{readingMinutes(a.content)} min read</span>
+        </p>
+      </div>
+    </header>
+    <div class="container-x max-w-3xl py-12">
+      <div class="prose-content" set:html={renderText(a.content)} />
+      <aside class="mt-12 rounded-xl border-l-4 border-gold bg-paper-dim p-6 text-[15px]">
+        <p><strong class="text-navy-deep">General information, not advice.</strong> Tax and regulatory positions change and depend on your facts. For advice on your situation, <a href="/appointment">book a consultation</a>.</p>
+      </aside>
+    </div>
+  </article>
+  {related.length > 0 && (
+    <section class="container-x py-12">
+      <h2 class="mb-6 text-2xl">Related guides</h2>
+      <div class="grid gap-5 md:grid-cols-3">{related.map((r) => <ArticleCard article={r} />)}</div>
+    </section>
+  )}
+  <CtaBand />
+</Base>

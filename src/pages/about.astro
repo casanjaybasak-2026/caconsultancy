@@ -1,0 +1,46 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHero from '../components/PageHero.astro';
+import CtaBand from '../components/CtaBand.astro';
+import Icon from '../components/Icon.astro';
+import { getProfile, isReal } from '../lib/content';
+import { personJsonLd, breadcrumbJsonLd } from '../lib/seo';
+const p = await getProfile();
+const expertise = ['Chartered Accountant', 'Financial analysis', 'Business consulting', 'Tax and compliance advisory', 'Financial modelling', 'Accounting and reporting', 'Loan and project advisory', 'Technology-enabled financial solutions'];
+const memberships = (p?.memberships ?? []).filter(isReal);
+---
+<Base title="About CA S K Basak | Chartered Accountant in Kolkata" description="Professional profile of CA S K Basak, Chartered Accountant (ICAI) and financial consultant in Kolkata: qualifications, areas of expertise and approach." path="/about" jsonLd={[personJsonLd(), breadcrumbJsonLd([['Home', '/'], ['About', '/about']])]}>
+  <PageHero eyebrow="About" title="CA S K Basak" lead={p?.title ?? 'Chartered Accountant & Financial Consultant'} crumbs={[['Home', '/'], ['About', '/about']]} />
+  <section class="section">
+    <div class="container-x grid gap-12 lg:grid-cols-[1fr_2fr]">
+      <div>
+        <div class="aspect-[4/5] overflow-hidden rounded-[var(--radius-card)] border border-line bg-paper-dim">
+          {p?.profile_image
+            ? <img src={p.profile_image} alt="CA S K Basak" class="h-full w-full object-cover" width="480" height="600" loading="eager" />
+            : <div class="grid h-full place-items-center"><span class="grid size-28 place-items-center rounded-full bg-navy font-display text-4xl text-paper ring-4 ring-gold/40">SKB</span></div>}
+        </div>
+      </div>
+      <div class="space-y-10">
+        <div class="prose-content">
+          <h2 class="!mt-0">Profile</h2>
+          <p>{p?.bio}</p>
+          {isReal(p?.qualification) && <p><strong>Qualification:</strong> {p!.qualification}</p>}
+          {isReal(p?.experience) && <p><strong>Experience:</strong> {p!.experience}</p>}
+        </div>
+        <div>
+          <h2 class="mb-5 text-2xl">Where the practice focuses</h2>
+          <ul class="grid gap-3 sm:grid-cols-2">
+            {expertise.map((e) => <li class="flex items-center gap-3 rounded-xl border border-line bg-white px-4 py-3"><Icon name="check" size={18} class="text-success" />{e}</li>)}
+          </ul>
+        </div>
+        <div>
+          <h2 class="mb-4 text-2xl">Memberships</h2>
+          <ul class="space-y-2">
+            {(memberships.length ? memberships : ['Member, The Institute of Chartered Accountants of India (ICAI)']).map((m) => <li class="flex items-center gap-3"><Icon name="shield" size={18} class="text-gold-ink" />{m}</li>)}
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+  <CtaBand />
+</Base>

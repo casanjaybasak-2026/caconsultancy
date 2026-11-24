@@ -1,8 +1,35 @@
 {
+  "$schema": "node_modules/wrangler/config-schema.json",
   "name": "caconsultancyservice",
+  "main": "worker/index.ts",
   "compatibility_date": "2026-08-30",
+  "observability": { "enabled": true },
   "assets": {
-    "directory": "./",
-    "not_found_handling": "single-page-application"
+    "directory": "./dist",
+    "binding": "ASSETS",
+    "html_handling": "auto-trailing-slash",
+    "not_found_handling": "404-page",
+    "run_worker_first": [
+      "/api/*",
+      "/admin",
+      "/admin/*",
+      "/business-financial-health-monitor/*",
+      "/loan-dscr-monitor/*",
+      "/cash-flow-monitor/*",
+      "/receivable-payable-monitor/*",
+      "/cma-bank-renewal-monitor/*",
+      "/monthly-mis-cfo-dashboard/*"
+    ]
+  },
+  // Plain (non-secret) settings. Secrets are set with `wrangler secret put` or in the dashboard:
+  // RAZORPAY_KEY_SECRET, RAZORPAY_WEBHOOK_SECRET, SUPABASE_SERVICE_ROLE_KEY, RESEND_API_KEY
+  "vars": {
+    "RAZORPAY_KEY_ID": "rzp_test_REPLACE_ME",
+    "SUPABASE_URL": "https://htfluyhsaondqacgeyou.supabase.co",
+    "OWNER_EMAIL": "REPLACE_ME@example.com",
+    "BOOKING_FROM_EMAIL": "bookings@ca-sk-basak-consultancy.in",
+    "CONSULTATION_FEE_PAISE": "100000",
+    "SITE_URL": "https://ca-sk-basak-consultancy.in",
+    "WHATSAPP_NUMBER": ""
   }
 }

@@ -56,3 +56,47 @@ describe.skipIf(!built)('built site', () => {
     }
   });
 });
+
+describe.skipIf(!built)('SEO / GEO files', () => {
+  const ldBlocks = (h: string) => [...h.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)].map((m) => JSON.parse(m[1]));
+  const types = (h: string) => ldBlocks(h).flatMap((b) => (b['@graph'] ?? [b]).flatMap((n: any) => [n['@type']].flat()));
+
+  it('every JSON-LD block parses and uses one @graph per page', () => {
+    for (const p of oldLocs) {
+      const blocks = ldBlocks(html(p));
+      expect(blocks.length, p).toBeLessThanOrEqual(1);
+      for (const b of blocks) expect(b['@context']).toBe('https://schema.org');
+    }
+  });
+
+  it('home has AccountingService, WebSite, Person, FAQPage', () => {
+    const t = types(html('/'));
+    for (const x of ['AccountingService', 'WebSite', 'Person', 'FAQPage']) expect(t).toContain(x);
+  });
+
+  it('articles have Article (with speakable) and BreadcrumbList', () => {
+    const p = oldLocs.find((l) => l.startsWith('/resources/'))!;
+    const t = types(html(p));
+    expect(t).toContain('Article');
+    expect(t).toContain('BreadcrumbList');
+    expect(html(p)).toContain('article-summary');
+  });
+
+  it('sitemap lists every old URL plus refund policy, but no booking or legacy routes', () => {
+    const sm = readFileSync('dist/sitemap.xml', 'utf8');
+    for (const p of oldLocs) expect(sm, p).toContain(`<loc>${ORIGIN}${p === '/' ? '/' : p}</loc>`);
+    expect(sm).toContain('/refund-policy');
+    expect(sm).not.toMatch(/\/booking\/|\/admin|\/signup|\/dashboard/);
+  });
+
+  it('robots keeps old disallows and blocks booking/api; llms.txt exists', () => {
+    const r = readFileSync('dist/robots.txt', 'utf8');
+    for (const d of ['Disallow: /admin', 'Disallow: /*/signup', 'Disallow: /booking/', 'Disallow: /api/', 'Sitemap: https://ca-sk-basak-consultancy.in/sitemap.xml']) expect(r).toContain(d);
+    // No Disallow rule may prefix-match a public page such as /appointment
+    const rules = [...r.matchAll(/^Disallow: (\S+)$/gm)].map((m) => m[1]).filter((d) => !d.includes('*') && !d.endsWith('$'));
+    for (const p of oldLocs) for (const d of rules) expect(p.startsWith(d), `${d} blocks ${p}`).toBe(false);
+    const l = readFileSync('dist/llms.txt', 'utf8');
+    expect(l).toMatch(/^# CA S K Basak/);
+    expect(l).toContain('/appointment');
+  });
+});

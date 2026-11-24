@@ -3,7 +3,7 @@ import '../styles/global.css';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import { SITE } from '../config/site';
-import { abs } from '../lib/seo';
+import { abs, graph } from '../lib/seo';
 
 interface Props {
   title: string;
@@ -48,7 +48,7 @@ const ogImage = `${SITE.url}/icon-512.png`;
     <meta name="theme-color" content="#0f2545" />
     <meta name="google-site-verification" content={SITE.googleVerification} />
 
-    {jsonLd.map((d) => <script type="application/ld+json" set:html={JSON.stringify(d)} />)}
+    {jsonLd.length > 0 && <script type="application/ld+json" set:html={JSON.stringify(graph(jsonLd)).replace(/</g, '\\u003c')} />}
 
     {!noindex && ads && <script async src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${SITE.adsenseClient}`} crossorigin="anonymous"></script>}
     <script async src={`https://www.googletagmanager.com/gtag/js?id=${SITE.gaId}`}></script>

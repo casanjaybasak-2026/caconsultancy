@@ -19,6 +19,13 @@ export const SITE = {
   googleVerification: '6uXVrt1CKV9oE12r9fKvkD0QdkM6EyimPYDgPdVKSWw',
 };
 
+/**
+ * Official profiles for schema.org `sameAs` (entity graph for AI search). Add only real URLs, e.g.
+ * Google Business Profile, LinkedIn (practice + personal), ICAI member directory, YouTube, Facebook.
+ */
+export const SAME_AS: string[] = [];
+export const PERSON_SAME_AS: string[] = [];
+
 export interface SiteConfig {
   contact_phone: string;
   contact_whatsapp: string;

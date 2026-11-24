@@ -15,5 +15,15 @@ const services = await getServices();
       {services.map((s, i) => <ServiceCard service={s} index={i} detailed />)}
     </div>
   </section>
+  <section class="section bg-paper-dim">
+    <div class="container-x grid gap-10 lg:grid-cols-3">
+      <div><h2 class="text-3xl">How engagements and fees work</h2></div>
+      <div class="prose-content !text-base lg:col-span-2">
+        <p><strong>Start with a consultation.</strong> A one-to-one consultation costs ₹1,000 including GST and is booked and paid online. We review your requirement, explain what applies and what the work involves.</p>
+        <p><strong>Then a written scope and quote.</strong> Return filing, GST compliance, audits, project reports and other assignments are quoted separately based on volume and complexity, before any work begins.</p>
+        <p><strong>One-off or ongoing.</strong> Many clients start with a single assignment — an income tax return, a CMA report, a notice response — and move to monthly support for accounting, GST and MIS. Recurring monitoring is also available through the online <a href="/business-financial-health-monitor">monthly monitoring tools</a>.</p>
+      </div>
+    </div>
+  </section>
   <CtaBand title="Not sure which service you need?" body="Book a consultation and describe your situation — we'll tell you what applies and what it involves." />
 </Base>

@@ -1,4 +1,4 @@
-import { SITE, type SiteConfig } from '../config/site';
+import { SITE, SAME_AS, PERSON_SAME_AS, type SiteConfig } from '../config/site';
 import type { Article, Faq, Plan, Service } from './content';
 
 const ctx = 'https://schema.org';
@@ -8,7 +8,7 @@ const PERSON_ID = `${SITE.url}/#person`;
 const SITE_ID = `${SITE.url}/#website`;
 
 export function orgJsonLd(cfg: SiteConfig, services: Service[] = []) {
-  const sameAs: string[] = [];
+  const sameAs = SAME_AS;
   return {
     '@context': ctx,
     '@type': ['AccountingService', 'ProfessionalService'],
@@ -18,7 +18,7 @@ export function orgJsonLd(cfg: SiteConfig, services: Service[] = []) {
     description:
       'Chartered Accountant in Kolkata offering income tax, GST, audit, accounting, loan/CMA and business advisory services for individuals, professionals and MSMEs across India.',
     url: SITE.url + '/',
-    logo: `${SITE.url}/icon-512.png`,
+    logo: { '@type': 'ImageObject', url: `${SITE.url}/icon-512.png`, width: 512, height: 512 },
     image: `${SITE.url}/icon-512.png`,
     founder: { '@id': PERSON_ID },
     priceRange: '₹₹',
@@ -26,6 +26,9 @@ export function orgJsonLd(cfg: SiteConfig, services: Service[] = []) {
     paymentAccepted: 'UPI, Credit Card, Debit Card, Net Banking',
     ...(cfg.contact_phone && { telephone: cfg.contact_phone }),
     ...(cfg.contact_email && { email: cfg.contact_email }),
+    ...((cfg.contact_phone || cfg.contact_email) && {
+      contactPoint: { '@type': 'ContactPoint', contactType: 'customer service', areaServed: 'IN', availableLanguage: ['en', 'hi', 'bn'], ...(cfg.contact_phone && { telephone: cfg.contact_phone }), ...(cfg.contact_email && { email: cfg.contact_email }) },
+    }),
     address: {
       '@type': 'PostalAddress',
       ...(cfg.office_address && cfg.office_address !== 'Kolkata, West Bengal, India' && { streetAddress: cfg.office_address }),
@@ -52,12 +55,16 @@ export function orgJsonLd(cfg: SiteConfig, services: Service[] = []) {
   };
 }
 
-export const personJsonLd = () => ({
+export const personJsonLd = (image?: string | null) => ({
   '@context': ctx,
   '@type': 'Person',
   '@id': PERSON_ID,
   name: 'CA S K Basak',
   jobTitle: 'Chartered Accountant & Financial Consultant',
+  description: 'Chartered Accountant (ICAI) in Kolkata advising individuals, professionals and MSMEs on income tax, GST, audit, accounting, bank loans and business finance.',
+  ...(image && { image }),
+  address: { '@type': 'PostalAddress', addressLocality: SITE.city, addressRegion: SITE.region, addressCountry: SITE.country },
+  ...(PERSON_SAME_AS.length && { sameAs: PERSON_SAME_AS }),
   hasCredential: { '@type': 'EducationalOccupationalCredential', credentialCategory: 'Professional qualification', name: 'Chartered Accountant', recognizedBy: { '@type': 'Organization', name: SITE.memberOf } },
   memberOf: { '@type': 'Organization', name: SITE.memberOf },
   worksFor: { '@id': ORG_ID },
@@ -113,9 +120,16 @@ export const articleJsonLd = (a: Article, description: string) => ({
   author: { '@id': PERSON_ID, '@type': 'Person', name: 'CA S K Basak', url: abs('/about') },
   publisher: { '@id': ORG_ID },
   mainEntityOfPage: abs(`/resources/${a.slug}`),
+  image: `${SITE.url}/icon-512.png`,
   inLanguage: 'en-IN',
   isAccessibleForFree: true,
+  speakable: { '@type': 'SpeakableSpecification', cssSelector: ['.article-summary', 'h1'] },
 });
+
+/** Combines page entities into one @graph block (context declared once). */
+export function graph(items: object[]) {
+  return { '@context': ctx, '@graph': items.map(({ '@context': _c, ...rest }: any) => rest) };
+}
 
 export const breadcrumbJsonLd = (items: [string, string][]) => ({
   '@context': ctx,

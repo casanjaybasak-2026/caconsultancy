@@ -1,9 +1,11 @@
 import { describe, it, expect, afterEach, vi } from 'vitest';
 import { verifyCheckoutSignature, verifyWebhookSignature, createOrder } from '../../worker/razorpay';
-import { markPaid, markFailed } from '../../worker/supabase';
-import { env, hmac, mockFetch } from './helpers';
+import { insertPendingBooking, markPaid, markFailed, getByOrder, insertEnquiry, listBookings } from '../../worker/db';
+import { env, freshEnv, hmac, mockFetch } from './helpers';
 
 afterEach(() => vi.unstubAllGlobals());
+
+const input = { name: 'Asha Roy', email: 'asha@example.com', phone: '+919830012345', client_type: 'Individual', service: null, preferred_date: null, preferred_time: null, communication_method: 'Video Call', description: null };
 
 describe('signatures', () => {
   it('accepts a correct checkout signature', async () => {
@@ -31,19 +33,39 @@ describe('createOrder', () => {
   });
 });
 
-describe('supabase updates', () => {
-  it('markPaid reports changed only when a row was updated', async () => {
-    let rows: any[] = [{ id: 'a1' }];
-    const calls = mockFetch({ 'PATCH sb.test/rest/v1/appointments': () => rows });
-    expect((await markPaid(env, 'order_1', 'pay_1')).changed).toBe(true);
-    rows = [];
-    expect((await markPaid(env, 'order_1', 'pay_1')).changed).toBe(false);
-    expect(calls[0].url).toContain('payment_status=neq.paid');
+describe('D1 bookings (real SQLite, real migration)', () => {
+  it('markPaid changes the row exactly once', async () => {
+    const e = freshEnv();
+    await insertPendingBooking(e, input, 'order_1', 100000);
+    const first = await markPaid(e, 'order_1', 'pay_1');
+    expect(first.changed).toBe(true);
+    expect(first.changed && first.booking.payment_status).toBe('paid');
+    expect((await markPaid(e, 'order_1', 'pay_1')).changed).toBe(false);
+    expect((await getByOrder(e, 'order_1'))!.razorpay_payment_id).toBe('pay_1');
   });
-  it('markFailed never touches paid rows', async () => {
-    const calls = mockFetch({ 'PATCH sb.test': () => [] });
-    await markFailed(env, 'order_1');
-    expect(calls[0].url).toContain('payment_status=neq.paid');
-    expect(calls[0].body).toEqual({ payment_status: 'failed' });
+  it('markFailed never downgrades a paid booking', async () => {
+    const e = freshEnv();
+    await insertPendingBooking(e, input, 'order_2', 100000);
+    await markPaid(e, 'order_2', 'pay_2');
+    await markFailed(e, 'order_2');
+    expect((await getByOrder(e, 'order_2'))!.payment_status).toBe('paid');
+    await insertPendingBooking(e, input, 'order_3', 100000);
+    await markFailed(e, 'order_3');
+    expect((await getByOrder(e, 'order_3'))!.payment_status).toBe('failed');
+  });
+  it('rejects a duplicate order id and filters lists by status', async () => {
+    const e = freshEnv();
+    await insertPendingBooking(e, input, 'order_4', 100000);
+    await expect(insertPendingBooking(e, input, 'order_4', 100000)).rejects.toThrow();
+    await insertPendingBooking(e, input, 'order_5', 100000);
+    await markPaid(e, 'order_5', 'p');
+    expect((await listBookings(e, 'paid')).map((b) => b.razorpay_order_id)).toEqual(['order_5']);
+    expect((await listBookings(e, null)).length).toBe(2);
+  });
+  it('stores enquiries', async () => {
+    const e = freshEnv();
+    const row = await insertEnquiry(e, { name: 'B', email: 'b@x.in', phone: '9830012345', service: null, message: 'Hello there' });
+    expect(row.id).toBeTruthy();
+    expect(row.created_at).toMatch(/^\d{4}-/);
   });
 });

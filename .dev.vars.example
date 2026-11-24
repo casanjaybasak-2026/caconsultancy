@@ -1,5 +1,5 @@
-# Copy to .dev.vars for `wrangler dev`. Never commit .dev.vars.
+# Copy to .dev.vars for `npm run preview` (wrangler dev). Never commit .dev.vars.
 RAZORPAY_KEY_SECRET=
 RAZORPAY_WEBHOOK_SECRET=
-SUPABASE_SERVICE_ROLE_KEY=
 RESEND_API_KEY=
+CALLMEBOT_API_KEY=

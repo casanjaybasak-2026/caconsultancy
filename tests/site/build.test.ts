@@ -91,7 +91,7 @@ describe.skipIf(!built)('SEO / GEO files', () => {
 
   it('robots keeps old disallows and blocks booking/api; llms.txt exists', () => {
     const r = readFileSync('dist/robots.txt', 'utf8');
-    for (const d of ['Disallow: /admin', 'Disallow: /*/signup', 'Disallow: /booking/', 'Disallow: /api/', 'Sitemap: https://ca-sk-basak-consultancy.in/sitemap.xml']) expect(r).toContain(d);
+    for (const d of ['Disallow: /admin', 'Disallow: /manage', 'Disallow: /*/signup', 'Disallow: /booking/', 'Disallow: /api/', 'Sitemap: https://ca-sk-basak-consultancy.in/sitemap.xml']) expect(r).toContain(d);
     // No Disallow rule may prefix-match a public page such as /appointment
     const rules = [...r.matchAll(/^Disallow: (\S+)$/gm)].map((m) => m[1]).filter((d) => !d.includes('*') && !d.endsWith('$'));
     for (const p of oldLocs) for (const d of rules) expect(p.startsWith(d), `${d} blocks ${p}`).toBe(false);

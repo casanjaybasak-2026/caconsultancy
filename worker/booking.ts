@@ -1,8 +1,9 @@
 import type { Env } from './env';
 import { json } from './http';
 import { createOrder, fetchPayment, capturePayment, feePaise, verifyCheckoutSignature, verifyWebhookSignature } from './razorpay';
-import { insertPendingAppointment, markPaid, markFailed, getByOrder } from './supabase';
-import { sendBookingEmails, bookingRef } from './email';
+import { insertPendingBooking, markPaid, markFailed, getByOrder, insertEnquiry } from './db';
+import { sendBookingEmails, sendEnquiryEmail, bookingRef } from './email';
+import { notifyOwnerWhatsApp, waLink } from './whatsapp';
 
 export const CLIENT_TYPES = ['Individual', 'Professional', 'MSME / Startup', 'Business / Company'] as const;
 export const COMM_METHODS = ['Phone Call', 'Video Call', 'WhatsApp', 'In-person', 'Email'] as const;
@@ -68,13 +69,13 @@ export async function handleOrder(req: Request, env: Env): Promise<Response> {
 
   const receipt = 'appt_' + crypto.randomUUID().slice(0, 12);
   const order = await createOrder(env, { receipt, notes: { purpose: 'Consultation booking', name: v.value.name, email: v.value.email } });
-  const appt = await insertPendingAppointment(env, v.value, order.id, order.amount);
+  const booking = await insertPendingBooking(env, v.value, order.id, order.amount);
   return json({
     order_id: order.id,
     key_id: env.RAZORPAY_KEY_ID,
     amount: order.amount,
     currency: 'INR',
-    appointment_id: appt.id,
+    booking_id: booking.id,
     prefill: { name: v.value.name, email: v.value.email, contact: v.value.phone },
   });
 }
@@ -89,8 +90,13 @@ async function settle(env: Env, orderId: string, paymentId: string): Promise<{ o
 
   const result = await markPaid(env, orderId, paymentId);
   if (result.changed) {
-    await sendBookingEmails(env, result.appointment, paymentId);
-    return { ok: true, ref: bookingRef(result.appointment.id) };
+    const b = result.booking;
+    const ref = bookingRef(b.id);
+    await Promise.all([
+      sendBookingEmails(env, b, paymentId),
+      notifyOwnerWhatsApp(env, `✅ New paid booking ${ref}\n${b.name} · ${b.phone}\n${b.service ?? 'Service not specified'}\nPreferred: ${b.preferred_date ?? '-'} ${b.preferred_time ?? ''} (${b.communication_method})\nChat: ${waLink(b.phone)}\nAll bookings: ${env.SITE_URL}/manage`),
+    ]);
+    return { ok: true, ref };
   }
   const existing = await getByOrder(env, orderId);
   if (!existing) return { ok: false, error: 'Booking not found.' };
@@ -123,5 +129,29 @@ export async function handleWebhook(req: Request, env: Env): Promise<Response> {
   } else if (evt.event === 'payment.failed') {
     await markFailed(env, orderId);
   }
+  return json({ ok: true });
+}
+
+export function validateEnquiry(body: unknown): { ok: true; value: { name: string; email: string; phone: string; service: string | null; message: string } } | { ok: false; errors: Record<string, string> } {
+  const b = (body ?? {}) as Record<string, unknown>;
+  if (str(b.website)) return { ok: false, errors: { form: 'Unable to submit this form.' } };
+  const errors: Record<string, string> = {};
+  const name = str(b.name, 100), email = str(b.email, 200), phone = str(b.phone, 20), message = str(b.message, 1000);
+  if (name.length < 2) errors.name = 'Please enter your name.';
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errors.email = 'Please enter a valid email address.';
+  if (!/^[0-9+\-\s()]{7,15}$/.test(phone)) errors.phone = 'Please enter a valid mobile number.';
+  if (message.length < 5) errors.message = 'Please enter a message.';
+  if (Object.keys(errors).length) return { ok: false, errors };
+  return { ok: true, value: { name, email, phone, service: str(b.service, 100) || null, message } };
+}
+
+export async function handleEnquiry(req: Request, env: Env): Promise<Response> {
+  const v = validateEnquiry(await readJson(req));
+  if (!v.ok) return json({ errors: v.errors }, 400);
+  const e = await insertEnquiry(env, v.value);
+  await Promise.all([
+    sendEnquiryEmail(env, e),
+    notifyOwnerWhatsApp(env, `📩 New enquiry from ${e.name} · ${e.phone}\n${e.service ?? ''}\n${e.message.slice(0, 300)}\nAll enquiries: ${env.SITE_URL}/manage`),
+  ]);
   return json({ ok: true });
 }

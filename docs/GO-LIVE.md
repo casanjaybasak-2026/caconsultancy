@@ -1,127 +1,141 @@
-# Go-live guide: Astro site + Razorpay booking on Cloudflare
+# Go-live guide (Cloudflare edition)
 
-Branch: `astro-rebuild` · Worker: `caconsultancyservice` · Domain: `ca-sk-basak-consultancy.in`
+Everything runs on Cloudflare: domain, website, payment API, **D1 database**, **Email Routing**, and the **Access** login for your bookings page. Resend sends the automatic emails and CallMeBot sends WhatsApp alerts to your phone.
 
-## Hosting recommendation (short)
-
-The site is a **Cloudflare Worker with static assets**. That's the setup you already run, and it stays the same.
-- Astro builds the public pages to static HTML in `dist/`, which Cloudflare serves from its edge.
-- The same Worker (`worker/index.ts`) runs the three booking API routes. It also serves your existing tools and admin panel (`/admin`, `/<monitor>/dashboard` and so on) unchanged.
-
-Why Workers rather than Pages or Pages Functions: Cloudflare now directs new projects to Workers, your domain is already attached to this Worker, and one Worker can serve the static files, the API and the secrets together.
-
-## 1. Environment variables
-
-**Plain variables**: in `wrangler.jsonc` → `vars`. They're committed to Git, so never put a secret here. Values in this file override any dashboard values on every deploy.
-
-| Name | Value | Notes |
-|---|---|---|
-| `RAZORPAY_KEY_ID` | `rzp_test_…` (your test Key ID) | Change to `rzp_live_…` at launch |
-| `OWNER_EMAIL` | the address that receives booking alerts | **Replace `REPLACE_ME@example.com`** |
-| `WHATSAPP_NUMBER` | digits with country code, e.g. `919830012345` | Reserved for Worker use. The success page's WhatsApp button reads from Admin → Settings → WhatsApp |
-| `BOOKING_FROM_EMAIL` | `bookings@ca-sk-basak-consultancy.in` | Must be on a domain verified in Resend |
-| `CONSULTATION_FEE_PAISE` | `100000` | ₹1,000 incl. GST |
-| `SUPABASE_URL` | `https://htfluyhsaondqacgeyou.supabase.co` | |
-| `SITE_URL` | `https://ca-sk-basak-consultancy.in` | |
-
-**Secrets**: set in Cloudflare → Workers & Pages → `caconsultancyservice` → Settings → Variables and Secrets → *Add → Secret*, or with `npx wrangler secret put NAME`. They're never stored in Git.
-
-| Secret | Where to get it |
-|---|---|
-| `RAZORPAY_KEY_SECRET` | Razorpay Dashboard (Test mode) → Account & Settings → API Keys |
-| `RAZORPAY_WEBHOOK_SECRET` | The secret you choose when creating the webhook (step 4) |
-| `SUPABASE_SERVICE_ROLE_KEY` | Supabase → Project Settings → API → `service_role` key |
-| `RESEND_API_KEY` | Resend → API Keys (sending access only) |
-
-**Build-time (public)**: `.env.production` contains only the public Supabase URL and anon key, which already ship in the browser today.
-
-For local testing, copy `.dev.vars.example` to `.dev.vars`, fill in the test secrets, then run `npm run preview`. `.dev.vars` is git-ignored.
-
-## 2. Supabase database change (once)
-
-Supabase → SQL Editor → paste and run `supabase/migrations/2026-11-24-appointment-payments.sql`. It's safe to run twice. It adds `payment_status`, `amount_paise`, `razorpay_order_id`, `razorpay_payment_id` and `paid_at` to `appointments`.
-
-## 3. Resend (confirmation emails)
-
-1. Sign up at resend.com → Domains → Add `ca-sk-basak-consultancy.in`.
-2. Resend shows 3–4 DNS records (an MX and a TXT/SPF on a `send` subdomain, a DKIM TXT `resend._domainkey`, and an optional DMARC TXT). Add each one in Cloudflare → DNS exactly as shown, with **DNS only (grey cloud)**.
-3. Click Verify in Resend. Create an API key and save it as the `RESEND_API_KEY` secret.
-
-## 4. Razorpay (test mode first)
-
-1. Dashboard in **Test mode** → API Keys → generate. Put the Key ID in `wrangler.jsonc` and the Key Secret in the Cloudflare secret.
-2. Settings → Payment capture → **Automatic capture** on. The code also captures `authorized` payments as a fallback.
-3. Webhooks → Add:
-   - URL: `https://ca-sk-basak-consultancy.in/api/booking/webhook`
-   - Secret: a long random string, also saved as `RAZORPAY_WEBHOOK_SECRET`
-   - Events: `payment.captured`, `payment.failed`, `order.paid`
-
-## 5. Deploy
-
-Check how the Worker deploys today: Cloudflare → Worker → Settings → Builds.
-
-- **Connected to GitHub (Workers Builds):** set *Build command* to `npm run build` and *Deploy command* to `npx wrangler deploy`. Pushing the branch, or merging it to `main`, deploys it.
-- **Manual:** run `npm ci && npm run deploy` from this folder (it asks you to log in with `wrangler login` the first time).
-
-## 6. Test payment checklist (test mode)
-
-- [ ] `/appointment` loads, the form validates, and "Pay ₹1,000 & book" opens Razorpay Checkout
-- [ ] Pay with UPI ID `success@razorpay` (or Razorpay's test card) → redirected to `/booking/success?ref=SKB-…`
-- [ ] Supabase `appointments` row: `payment_status = paid`, `razorpay_payment_id` filled, visible in Admin → Appointments
-- [ ] Client receipt email and owner alert email both arrive, **once each**
-- [ ] Razorpay → Webhooks → the delivery for this payment shows 200
-- [ ] Pay with `failure@razorpay` → `/booking/failed`; "Try again" keeps the form filled in
-- [ ] Close the checkout window → a friendly message appears and the form is still filled in
-- [ ] `/admin` and a monitor dashboard (e.g. `/loan-dscr-monitor/dashboard`) still work
-- [ ] `/sitemap.xml`, `/robots.txt` and `/llms.txt` load
-
-## 7. Domain and SSL
-
-- The domain is already on Cloudflare and attached to this Worker. Confirm that Worker → Settings → Domains & Routes lists `ca-sk-basak-consultancy.in` (add `www.` too, with a redirect to the apex if you want).
-- SSL/TLS: mode **Full (strict)**, *Always Use HTTPS* on, minimum TLS 1.2. HSTS is sent by `public/_headers`.
-- AI crawlers (see the audit report): Cloudflare → AI Crawl Control / Security → Bots. Allow PerplexityBot, OAI-SearchBot, ChatGPT-User, Claude-SearchBot and Claude-User. Then decide whether to keep "Manage robots.txt" (it prepends its own rules to `public/robots.txt`).
-
-## 8. Switching to live payments
-
-1. Razorpay account activated. The site already has the required Terms, Privacy, Refund & Cancellation and Contact pages; **contact details must be filled in** first.
-2. Razorpay **Live mode** → generate live keys. Update `RAZORPAY_KEY_ID` in `wrangler.jsonc` to `rzp_live_…` and replace the `RAZORPAY_KEY_SECRET` secret.
-3. Create the same webhook again **in Live mode** (it's separate from test mode), with a new secret, and update `RAZORPAY_WEBHOOK_SECRET`.
-4. Deploy. Make one real ₹1,000 booking yourself, check the row and emails, then refund it from the Razorpay dashboard.
-
-## 9. Before go-live: content you need to supply
-
-- Admin → Settings: phone, WhatsApp (digits with country code), email, office address
-- Admin → Profile: real qualification, experience, membership number, photo
-- `wrangler.jsonc`: `OWNER_EMAIL`, `RAZORPAY_KEY_ID`
-- Optional: profile URLs in `src/config/site.ts` → `SAME_AS`, `PERSON_SAME_AS`
-- Review the wording of `src/legal/refund-policy.md` (24-hour reschedule and cancellation rule)
-
-The site reads contact and profile details **at build time**, so trigger a rebuild or redeploy after editing them in Admin.
-
-## 10. Git: push the branch
-
-```bash
-cd caconsultancy
 ```
+Client books & pays ₹1,000 ─► Cloudflare Worker ─► D1 database "skb-bookings"
+                                   ├─► Resend: receipt email to the client   (from bookings@ca-sk-basak-consultancy.in)
+                                   ├─► Resend: alert email to you
+                                   └─► CallMeBot: WhatsApp alert to your phone (with a tap-to-chat link to the client)
+Client replies to the email ─► Cloudflare Email Routing ─► your Gmail
+Contact-form enquiries ─► D1 + email + WhatsApp to you
+You view everything at https://ca-sk-basak-consultancy.in/manage (Cloudflare Access login)
+```
+
+**Already done for you:**
+- GitHub and Cloudflare are connected.
+- D1 database `skb-bookings` is created (ID `6fa77f66-a88d-4274-89ed-0f6274c78db8`, region APAC), and its tables are created.
+
+**Still on Supabase for now:** the monitor tools, subscriptions, the old admin panel, and the articles, services and FAQs content. That old compiled app can't be moved without rebuilding it.
+
+---
+
+## Do these in this order
+
+### Step 1: Check the domain (2 min)
+1. Go to **dash.cloudflare.com** → click **ca-sk-basak-consultancy.in**. The status should be **Active**.
+2. **Workers & Pages → caconsultancyservice → Settings → Domains & Routes.** `ca-sk-basak-consultancy.in` should be listed. To add `www`, click **+ Add → Custom domain → `www.ca-sk-basak-consultancy.in`**.
+3. **SSL/TLS → Overview** → mode **Full (strict)**. Then **SSL/TLS → Edge Certificates** → **Always Use HTTPS: On**.
+
+### Step 2: Email Routing, to receive email at your domain (5 min, free)
+1. Your domain → **Email → Email Routing → Get started**.
+2. Click **Add records and enable**. Cloudflare adds the MX and SPF records itself.
+3. **Destination addresses → Add destination address** → your Gmail → open Gmail and click **Verify**.
+4. **Routing rules → Create address:**
+   - `bookings` → Send to → your Gmail
+   - `info` → Send to → your Gmail
+5. Test it: from another email account, send a message to `info@ca-sk-basak-consultancy.in`. It should arrive in Gmail.
+
+### Step 3: Resend, to send the automatic emails (10 min, free up to 3,000 a month)
+1. Sign up at **resend.com** (you can use your Gmail).
+2. **Domains → Add domain** → `ca-sk-basak-consultancy.in`, region **Tokyo (ap-northeast-1)**.
+3. If Resend offers **"Sign in to Cloudflare" / auto-configure**, use it. Otherwise copy each record into **Cloudflare → DNS → Records → Add record**, matching Type, Name and Value exactly, with **Proxy status: DNS only (grey cloud)**.
+   - The records go on `send` and `resend._domainkey`, so they don't clash with Email Routing.
+4. Click **Verify DNS records** and wait until it shows **Verified**.
+5. **API Keys → Create API key** → permission **Sending access** → copy the key (you only see it once).
+
+### Step 4: CallMeBot, for WhatsApp alerts to your phone (3 min, free)
+1. Get the current CallMeBot number from **callmebot.com → WhatsApp API** and save it in your contacts.
+2. From **your** WhatsApp, send it: `I allow callmebot to send me messages`
+3. It replies with your **apikey**. Copy it.
+
+### Step 5: Razorpay test keys and webhook (10 min)
+1. **dashboard.razorpay.com** → switch to **Test mode** (toggle at the top).
+2. **Account & Settings → API Keys → Generate test key.** Copy the **Key ID** and the **Key Secret**.
+3. **Account & Settings → Payment capture → Automatic capture.**
+4. **Account & Settings → Webhooks → + Add new webhook:**
+   - URL: `https://ca-sk-basak-consultancy.in/api/booking/webhook`
+   - Secret: make up a long random password and copy it
+   - Events: `payment.captured`, `payment.failed`, `order.paid` → **Create**
+
+### Step 6: Cloudflare Access, to protect your bookings page (5 min, free)
+1. Cloudflare left menu → **Zero Trust**. The first time, pick a team name (e.g. `skbasak`) and the **Free** plan.
+2. **Access → Applications → Add an application → Self-hosted.**
+   - Application name: `Bookings`
+   - Domain: `ca-sk-basak-consultancy.in`, Path: `manage`
+   - Add a second destination with the same domain and path `manage/*`
+3. **Policy:** name `Owner`, Action **Allow**, Include → **Emails** → your Gmail. Save.
+4. Open the application again → **Overview** and copy the **Application Audience (AUD) Tag**.
+5. Note your **team domain**: `yourteam.cloudflareaccess.com` (shown in Zero Trust → Settings → Custom pages).
+
+### Step 7: Send me these values (not secret, safe to paste in chat)
+| What | Example |
+|---|---|
+| Razorpay **test Key ID** | `rzp_test_xxxxxxxx` |
+| Gmail for booking alerts | `you@gmail.com` |
+| Your WhatsApp number (country code, no +) | `919830012345` |
+| Access **team domain** | `skbasak.cloudflareaccess.com` |
+| Access **AUD tag** | long code from Step 6.4 |
+
+I'll put them in `wrangler.jsonc` (`RAZORPAY_KEY_ID`, `OWNER_EMAIL`, `OWNER_WHATSAPP`, `ACCESS_TEAM_DOMAIN`, `ACCESS_AUD`).
+
+### Step 8: Add the four secrets in Cloudflare (yourself; never paste these in chat)
+**Workers & Pages → caconsultancyservice → Settings → Variables and Secrets → + Add**, Type **Secret**:
+
+| Name | Value from |
+|---|---|
+| `RAZORPAY_KEY_SECRET` | Step 5.2 |
+| `RAZORPAY_WEBHOOK_SECRET` | Step 5.4 (the password you made) |
+| `RESEND_API_KEY` | Step 3.5 |
+| `CALLMEBOT_API_KEY` | Step 4.3 |
+
+### Step 9: Fill in your public details (old admin panel)
+At `https://ca-sk-basak-consultancy.in/admin`, log in:
+- **Settings:** phone, WhatsApp, email (use `info@ca-sk-basak-consultancy.in`), office address
+- **Profile:** qualification, experience, membership number, photo
+
+The website reads these when it builds, so do this **before** Step 10.
+
+### Step 10: I deploy
+Tell me "deploy". I'll run the tests, build, deploy with Wrangler, and push the `astro-rebuild` branch to GitHub.
+
+### Step 11: Test payment (test mode, no real money)
+1. Open `https://ca-sk-basak-consultancy.in/appointment`, fill in the form with your own email, and click **Pay ₹1,000 & book**.
+2. In Razorpay checkout choose **UPI** → enter `success@razorpay`.
+3. Check each of these:
+   - [ ] The "Payment received" page shows `SKB-XXXXXXXX`
+   - [ ] Receipt email in your inbox (from `bookings@…`)
+   - [ ] Alert email to your Gmail
+   - [ ] WhatsApp alert on your phone
+   - [ ] `https://ca-sk-basak-consultancy.in/manage` → log in with the email code → the booking shows as **paid**
+   - [ ] Reply to the receipt email → it arrives in your Gmail (via Email Routing)
+4. Try again with `failure@razorpay` → you should see "Payment not completed".
+5. Send a message from the **Contact** page → you get an email and a WhatsApp alert, and it appears in `/manage` → Enquiries.
+
+### Step 12: Switch to real payments
+1. Razorpay must have activated your account (it checks your Terms, Privacy, **Refund & Cancellation** and Contact pages, which are all on the site).
+2. Switch to **Live mode** → generate live keys → send me the live Key ID (`rzp_live_…`), and replace `RAZORPAY_KEY_SECRET` in Cloudflare.
+3. **Live mode → Webhooks:** add the same webhook again with a new password, and replace `RAZORPAY_WEBHOOK_SECRET`.
+4. I redeploy. Make one real ₹1,000 booking, check it, then refund it from Razorpay.
+
+---
+
+## Reference
+
+**Plain settings** (`wrangler.jsonc` → `vars`, committed to Git, so no secrets): `RAZORPAY_KEY_ID`, `OWNER_EMAIL`, `OWNER_WHATSAPP`, `BOOKING_FROM_EMAIL` (`bookings@ca-sk-basak-consultancy.in`), `CONSULTATION_FEE_PAISE` (`100000`), `SITE_URL`, `ACCESS_TEAM_DOMAIN`, `ACCESS_AUD`.
+Values in this file override dashboard values on every deploy, so change them here.
+
+**Secrets** (Cloudflare dashboard only): `RAZORPAY_KEY_SECRET`, `RAZORPAY_WEBHOOK_SECRET`, `RESEND_API_KEY`, `CALLMEBOT_API_KEY`.
+
+**Database:**
+- Schema in `migrations/`. Apply new ones with `npx wrangler d1 migrations apply skb-bookings --remote`.
+- Quick look from a terminal: `npx wrangler d1 execute skb-bookings --remote --command "SELECT * FROM bookings ORDER BY created_at DESC LIMIT 20"`.
+- Or use the Cloudflare dashboard → **Storage & Databases → D1 → skb-bookings → Console**.
+
+**Local testing:** copy `.dev.vars.example` to `.dev.vars`, fill in the test secrets, then run `npx wrangler d1 migrations apply skb-bookings --local` and `npm run preview`.
+
+**Git:**
 ```bash
 git push -u origin astro-rebuild
 ```
-
-Then open a pull request into `main` on GitHub and merge it when the test checklist passes. If you deploy straight from `main` without review:
-
-```bash
-git checkout main && git merge --no-ff astro-rebuild && git push origin main
-```
-
-Suggested squash or merge commit message:
-
-```
-Rebuild public site in Astro and add Razorpay consultation booking
-
-- Static Astro pages for every existing URL (new design, SEO/GEO, JSON-LD graph)
-- Cloudflare Worker: legacy tools/admin unchanged, /api/booking/{order,verify,webhook}
-- Server-side Razorpay order creation, HMAC signature + amount verification,
-  idempotent paid marking, webhook fallback, Resend confirmation emails
-- sitemap.xml, robots.txt, llms.txt, security headers, refund policy page
-- Legacy build pruned from ~300 to 42 files
-```
+Then open a pull request into `main` on GitHub and merge it.

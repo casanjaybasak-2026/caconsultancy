@@ -1,18 +1,22 @@
 import { vi } from 'vitest';
 import { createHmac } from 'node:crypto';
+import { createTestD1 } from './d1';
+
+export const freshEnv = () => ({ ...env, DB: createTestD1() });
 
 export const env = {
   RAZORPAY_KEY_ID: 'rzp_test_abc',
   RAZORPAY_KEY_SECRET: 'key_secret',
   RAZORPAY_WEBHOOK_SECRET: 'wh_secret',
-  SUPABASE_URL: 'https://sb.test',
-  SUPABASE_SERVICE_ROLE_KEY: 'service',
+  CALLMEBOT_API_KEY: 'cmb_key',
+  OWNER_WHATSAPP: '919830000000',
+  ACCESS_TEAM_DOMAIN: 'skb.cloudflareaccess.com',
+  ACCESS_AUD: 'aud123',
   RESEND_API_KEY: 're_test',
   OWNER_EMAIL: 'owner@test.in',
   BOOKING_FROM_EMAIL: 'bookings@test.in',
   CONSULTATION_FEE_PAISE: '100000',
   SITE_URL: 'https://site.test',
-  WHATSAPP_NUMBER: '919999999999',
   ASSETS: { fetch: vi.fn() },
 } as any;
 

@@ -1,6 +1,5 @@
 {
   "extends": "astro/tsconfigs/strict",
-  "compilerOptions": { "types": ["@cloudflare/workers-types"] },
-  "include": [".astro/types.d.ts", "src", "worker", "tests"],
-  "exclude": ["dist", "legacy"]
+  "include": [".astro/types.d.ts", "src", "tests/site"],
+  "exclude": ["dist", "legacy", "worker", "tests/worker"]
 }

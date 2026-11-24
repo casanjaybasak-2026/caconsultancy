@@ -127,3 +127,14 @@ Component structure, exact copy wording (based on current site content), how str
 - Razorpay test Key ID, Key Secret and webhook secret, entered in Cloudflare.
 - Review the refund/cancellation policy wording.
 - Confirm how the Worker is deployed today (Workers Builds connected to GitHub vs `wrangler deploy`). The build command changes to `npm run build`.
+
+## 12. Change (24 Nov 2026): Cloudflare-native bookings (approved by owner)
+
+The owner asked to use Cloudflare instead of Supabase, a domain email address, Resend for automatic emails, and WhatsApp alerts. Phase 1 (done):
+- **Bookings and enquiries** are stored in **Cloudflare D1** (`skb-bookings`, schema in `migrations/`), replacing the Supabase `appointments` change. Paid-once logic uses an atomic `UPDATE … WHERE payment_status <> 'paid' RETURNING *`.
+- **Contact form** posts to `POST /api/enquiry` on the Worker (D1 + owner email + WhatsApp) instead of writing to Supabase from the browser.
+- **Emails** are sent by Resend from `bookings@ca-sk-basak-consultancy.in`. Client replies go to that address, which **Cloudflare Email Routing** forwards to the owner's Gmail.
+- **WhatsApp alerts** go to the owner's own number via CallMeBot (secret `CALLMEBOT_API_KEY`, var `OWNER_WHATSAPP`). Messaging clients on WhatsApp would need the Meta WhatsApp Business API and is out of scope.
+- **`/manage`** is a Worker-rendered list of bookings and enquiries with CSV export. It's protected by **Cloudflare Access**, and the Worker also verifies the Access JWT (RS256, audience, issuer, expiry), failing closed if not configured.
+
+Phase 2 (later, separate project): rebuild the monitor tools and admin on Cloudflare, then retire Supabase. Until then the legacy app and the build-time content (articles, services, FAQs, profile, contact settings) stay on Supabase.

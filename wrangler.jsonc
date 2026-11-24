@@ -4,6 +4,9 @@
   "main": "worker/index.ts",
   "compatibility_date": "2026-08-30",
   "observability": { "enabled": true },
+  "d1_databases": [
+    { "binding": "DB", "database_name": "skb-bookings", "database_id": "6fa77f66-a88d-4274-89ed-0f6274c78db8", "migrations_dir": "migrations" }
+  ],
   "assets": {
     "directory": "./dist",
     "binding": "ASSETS",
@@ -11,6 +14,8 @@
     "not_found_handling": "404-page",
     "run_worker_first": [
       "/api/*",
+      "/manage",
+      "/manage/*",
       "/admin",
       "/admin/*",
       "/business-financial-health-monitor/*",
@@ -22,14 +27,15 @@
     ]
   },
   // Plain (non-secret) settings. Secrets are set with `wrangler secret put` or in the dashboard:
-  // RAZORPAY_KEY_SECRET, RAZORPAY_WEBHOOK_SECRET, SUPABASE_SERVICE_ROLE_KEY, RESEND_API_KEY
+  // RAZORPAY_KEY_SECRET, RAZORPAY_WEBHOOK_SECRET, RESEND_API_KEY, CALLMEBOT_API_KEY
   "vars": {
     "RAZORPAY_KEY_ID": "rzp_test_REPLACE_ME",
-    "SUPABASE_URL": "https://htfluyhsaondqacgeyou.supabase.co",
     "OWNER_EMAIL": "REPLACE_ME@example.com",
     "BOOKING_FROM_EMAIL": "bookings@ca-sk-basak-consultancy.in",
     "CONSULTATION_FEE_PAISE": "100000",
     "SITE_URL": "https://ca-sk-basak-consultancy.in",
-    "WHATSAPP_NUMBER": ""
+    "OWNER_WHATSAPP": "",
+    "ACCESS_TEAM_DOMAIN": "",
+    "ACCESS_AUD": ""
   }
 }

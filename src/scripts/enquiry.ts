@@ -1,32 +1,24 @@
-const SB = 'https://htfluyhsaondqacgeyou.supabase.co';
-const ANON = import.meta.env.PUBLIC_SUPABASE_ANON_KEY as string;
-
 export function submitEnquiry(form: HTMLFormElement) {
   const status = form.querySelector<HTMLElement>('#e-status')!;
+  const say = (msg: string, ok: boolean) => {
+    status.textContent = msg;
+    status.className = `text-sm ${ok ? 'text-success' : 'text-danger'}`;
+  };
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     const d = Object.fromEntries(new FormData(form)) as Record<string, string>;
-    if (d.website) return;
-    if (!d.name?.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(d.email ?? '') || !/^[0-9+\-\s()]{7,15}$/.test(d.phone ?? '') || !d.message?.trim()) {
-      status.textContent = 'Please fill in your name, a valid email, mobile number and message.';
-      status.className = 'text-sm text-danger';
-      return;
-    }
+    if (!d.name?.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(d.email ?? '') || !/^[0-9+\-\s()]{7,15}$/.test(d.phone ?? '') || !d.message?.trim())
+      return say('Please fill in your name, a valid email, mobile number and message.', false);
     const btn = form.querySelector('button')!;
     btn.disabled = true;
     btn.textContent = 'Sending…';
-    const res = await fetch(`${SB}/rest/v1/enquiries`, {
-      method: 'POST',
-      headers: { apikey: ANON, Authorization: `Bearer ${ANON}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
-      body: JSON.stringify({ name: d.name.trim(), email: d.email.trim(), phone: d.phone.trim(), service: d.service || null, message: d.message.trim() }),
-    }).catch(() => null);
+    const res = await fetch('/api/enquiry', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(d) }).catch(() => null);
     if (res?.ok) {
       form.reset();
-      status.textContent = "Thank you — your enquiry has been received. We'll get back to you shortly.";
-      status.className = 'text-sm text-success';
+      say("Thank you — your enquiry has been received. We'll get back to you shortly.", true);
     } else {
-      status.textContent = 'Something went wrong sending your enquiry. Please try again in a moment.';
-      status.className = 'text-sm text-danger';
+      const body = await res?.json().catch(() => null);
+      say(body?.errors ? Object.values(body.errors).join(' ') : 'Something went wrong sending your enquiry. Please try again in a moment.', false);
     }
     btn.disabled = false;
     btn.textContent = 'Send enquiry';

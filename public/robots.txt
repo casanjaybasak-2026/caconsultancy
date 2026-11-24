@@ -6,6 +6,7 @@ User-agent: *
 Allow: /
 Disallow: /admin
 Disallow: /api/
+Disallow: /manage
 Disallow: /booking/
 Disallow: /app$
 Disallow: /app.html
@@ -31,6 +32,7 @@ User-agent: Perplexity-User
 Allow: /
 Disallow: /admin
 Disallow: /api/
+Disallow: /manage
 Disallow: /booking/
 
 Sitemap: https://ca-sk-basak-consultancy.in/sitemap.xml

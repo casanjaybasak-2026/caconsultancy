@@ -1,0 +1,9 @@
+# Copy to .dev.vars for `npm run preview` (wrangler dev). Never commit .dev.vars.
+RAZORPAY_KEY_SECRET=
+RAZORPAY_WEBHOOK_SECRET=
+RESEND_API_KEY=
+TELEGRAM_BOT_TOKEN=
+TELEGRAM_CHAT_ID=
+CALLMEBOT_API_KEY=
+OWNER_EMAIL=
+OWNER_WHATSAPP=

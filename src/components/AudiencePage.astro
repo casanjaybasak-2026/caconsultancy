@@ -1,0 +1,39 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHero from './PageHero.astro';
+import Icon from './Icon.astro';
+import CtaBand from './CtaBand.astro';
+import { breadcrumbJsonLd, serviceJsonLd, faqJsonLd, abs } from '../lib/seo';
+import FaqList from './FaqList.astro';
+interface Props { path: string; metaTitle: string; description: string; eyebrow: string; title: string; lead: string; who?: string[]; listTitle: string; items: string[]; note?: string; cta: string; clientType: string; summary: string; faqs: { question: string; answer: string }[] }
+const p = Astro.props;
+---
+<Base title={p.metaTitle} description={p.description} path={p.path} jsonLd={[serviceJsonLd({ name: p.title, description: p.description, url: abs(p.path) }), faqJsonLd(p.faqs), breadcrumbJsonLd([['Home', '/'], [p.eyebrow, p.path]])]}>
+  <PageHero eyebrow={p.eyebrow} title={p.title} lead={p.lead} crumbs={[['Home', '/'], [p.eyebrow, p.path]]} />
+  <section class="section">
+    <div class="container-x grid gap-12 lg:grid-cols-[1.6fr_1fr]">
+      <div class="space-y-10">
+        <p class="text-[17px] leading-relaxed">{p.summary}</p>
+        {p.who && <div><h2 class="mb-4 text-2xl">Who this is for</h2><ul class="flex flex-wrap gap-2">{p.who.map((w) => <li class="rounded-full border border-line bg-white px-4 py-2 text-sm font-medium text-navy-deep">{w}</li>)}</ul></div>}
+        <div>
+          <h2 class="mb-5 text-2xl">{p.listTitle}</h2>
+          <ul class="grid gap-3 sm:grid-cols-2">{p.items.map((i) => <li class="flex items-center gap-3 rounded-xl border border-line bg-white px-4 py-3.5"><Icon name="check" size={18} class="text-success" />{i}</li>)}</ul>
+        </div>
+        {p.note && <p class="rounded-xl border-l-4 border-gold bg-paper-dim p-5 text-[15px]">{p.note}</p>}
+      </div>
+      <aside class="card h-fit p-7 lg:sticky lg:top-28">
+        <h2 class="text-2xl">{p.cta}</h2>
+        <p class="mt-3 text-[15px]">Share a little about your situation. Consultation fee ₹1,000 (incl. GST), paid securely online.</p>
+        <a href={`/appointment?type=${encodeURIComponent(p.clientType)}`} class="btn-primary mt-6 w-full">Book consultation</a>
+        <a href="/contact" class="btn-ghost mt-3 w-full">Send an enquiry</a>
+      </aside>
+    </div>
+  </section>
+  <section class="section bg-paper-dim">
+    <div class="container-x grid gap-10 lg:grid-cols-[1fr_1.6fr]">
+      <h2 class="text-3xl">Common questions</h2>
+      <FaqList faqs={p.faqs} />
+    </div>
+  </section>
+  <CtaBand />
+</Base>

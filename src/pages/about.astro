@@ -1,0 +1,64 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHero from '../components/PageHero.astro';
+import CtaBand from '../components/CtaBand.astro';
+import Icon from '../components/Icon.astro';
+import { getProfile, isReal } from '../lib/content';
+import { personJsonLd, breadcrumbJsonLd } from '../lib/seo';
+const p = await getProfile();
+const expertise = ['Chartered Accountant', 'Financial analysis', 'Business consulting', 'Tax and compliance advisory', 'Financial modelling', 'Accounting and reporting', 'Loan and project advisory', 'Technology-enabled financial solutions'];
+const memberships = (p?.memberships ?? []).filter(isReal);
+---
+<Base title="About CA S K Basak | Chartered Accountant in Kolkata" description="Professional profile of CA S K Basak, Chartered Accountant (ICAI) and financial consultant in Kolkata: qualifications, areas of expertise and approach." path="/about" jsonLd={[personJsonLd(p?.profile_image), breadcrumbJsonLd([['Home', '/'], ['About', '/about']])]}>
+  <PageHero eyebrow="About" title="CA S K Basak" lead={p?.title ?? 'Chartered Accountant & Financial Consultant'} crumbs={[['Home', '/'], ['About', '/about']]} />
+  <section class="section">
+    <div class="container-x grid gap-12 lg:grid-cols-[1fr_2fr]">
+      <div>
+        <div class="aspect-[4/5] overflow-hidden rounded-[var(--radius-card)] border border-line bg-paper-dim">
+          {p?.profile_image
+            ? <img src={p.profile_image} alt="CA S K Basak" class="h-full w-full object-cover" width="480" height="600" loading="eager" />
+            : <div class="grid h-full place-items-center"><span class="grid size-28 place-items-center rounded-full bg-navy font-display text-4xl text-paper ring-4 ring-gold/40">SKB</span></div>}
+        </div>
+      </div>
+      <div class="space-y-10">
+        <div class="prose-content">
+          <h2 class="!mt-0">Profile</h2>
+          <p>{p?.bio}</p>
+          {isReal(p?.qualification) && <p><strong>Qualification:</strong> {p!.qualification}</p>}
+          {isReal(p?.experience) && <p><strong>Experience:</strong> {p!.experience}</p>}
+        </div>
+        <div class="card p-6">
+          <h2 class="mb-4 text-xl">At a glance</h2>
+          <dl class="grid gap-x-6 gap-y-3 text-[15px] sm:grid-cols-[auto_1fr]">
+            <dt class="font-semibold text-navy-deep">Practice</dt><dd>CA S K Basak — Chartered Accountant &amp; Financial Consultant</dd>
+            <dt class="font-semibold text-navy-deep">Based in</dt><dd>Kolkata, West Bengal, India (clients served across India, mostly online)</dd>
+            <dt class="font-semibold text-navy-deep">Professional body</dt><dd>The Institute of Chartered Accountants of India (ICAI)</dd>
+            <dt class="font-semibold text-navy-deep">Clients</dt><dd>Salaried individuals, professionals, MSMEs, startups and companies</dd>
+            <dt class="font-semibold text-navy-deep">Core services</dt><dd>Income tax, GST, audit support, accounting, loan/CMA and project reports, MIS and virtual CFO, business valuation</dd>
+            <dt class="font-semibold text-navy-deep">Consultation</dt><dd>₹1,000 incl. GST — video, phone or in person (<a href="/appointment">book online</a>)</dd>
+          </dl>
+        </div>
+        <div>
+          <h2 class="mb-4 text-2xl">How the practice works</h2>
+          <div class="prose-content !text-base">
+            <p>Every engagement starts with a review of your actual documents — Form 16 and AIS for individuals; books, GST returns and bank statements for businesses — so advice is grounded in your facts rather than templates.</p>
+            <p>Work is explained in plain language, with the reasoning and documentation you need for your records, your bank or the tax department. Excel models, dashboards and online monitoring tools are used to keep recurring work accurate and quick.</p>
+          </div>
+        </div>
+        <div>
+          <h2 class="mb-5 text-2xl">Where the practice focuses</h2>
+          <ul class="grid gap-3 sm:grid-cols-2">
+            {expertise.map((e) => <li class="flex items-center gap-3 rounded-xl border border-line bg-white px-4 py-3"><Icon name="check" size={18} class="text-success" />{e}</li>)}
+          </ul>
+        </div>
+        <div>
+          <h2 class="mb-4 text-2xl">Memberships</h2>
+          <ul class="space-y-2">
+            {(memberships.length ? memberships : ['Member, The Institute of Chartered Accountants of India (ICAI)']).map((m) => <li class="flex items-center gap-3"><Icon name="shield" size={18} class="text-gold-ink" />{m}</li>)}
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+  <CtaBand />
+</Base>

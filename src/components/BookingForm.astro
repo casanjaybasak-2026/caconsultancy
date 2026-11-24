@@ -1,0 +1,42 @@
+---
+import { SERVICE_OPTIONS, CLIENT_TYPES, COMM_METHODS } from '../data/options';
+import Icon from './Icon.astro';
+---
+<form id="booking-form" class="card space-y-6 p-6 sm:p-8" novalidate>
+  <fieldset class="space-y-5">
+    <legend class="mb-1 font-display text-xl text-navy-deep">Your details</legend>
+    <div class="grid gap-5 sm:grid-cols-2">
+      <div class="field"><label for="b-name">Full name *</label><input id="b-name" name="name" required autocomplete="name" maxlength="100" aria-describedby="err-name" /><p id="err-name" class="error" data-error="name"></p></div>
+      <div class="field"><label for="b-email">Email *</label><input id="b-email" name="email" type="email" required autocomplete="email" aria-describedby="err-email" /><p id="err-email" class="error" data-error="email"></p></div>
+      <div class="field"><label for="b-phone">Mobile number *</label><input id="b-phone" name="phone" type="tel" required autocomplete="tel" inputmode="tel" placeholder="98300 12345" aria-describedby="err-phone" /><p id="err-phone" class="error" data-error="phone"></p></div>
+      <div class="field"><label for="b-type">You are</label><select id="b-type" name="client_type">{CLIENT_TYPES.map((c) => <option>{c}</option>)}</select></div>
+    </div>
+  </fieldset>
+  <fieldset class="space-y-5">
+    <legend class="mb-1 font-display text-xl text-navy-deep">Consultation</legend>
+    <div class="grid gap-5 sm:grid-cols-2">
+      <div class="field sm:col-span-2"><label for="b-service">Service</label><select id="b-service" name="service"><option value="">Select a service (optional)</option>{SERVICE_OPTIONS.map((s) => <option>{s}</option>)}</select></div>
+      <div class="field"><label for="b-date">Preferred date</label><input id="b-date" name="preferred_date" type="date" aria-describedby="err-preferred_date" /><p id="err-preferred_date" class="error" data-error="preferred_date"></p></div>
+      <div class="field"><label for="b-time">Preferred time</label><input id="b-time" name="preferred_time" type="time" min="09:00" max="20:00" /></div>
+      <div class="field sm:col-span-2"><label for="b-mode">How would you like to meet?</label><select id="b-mode" name="communication_method">{COMM_METHODS.map((c) => <option>{c}</option>)}</select></div>
+      <div class="field sm:col-span-2"><label for="b-desc">Briefly describe your requirement</label><textarea id="b-desc" name="description" rows="4" maxlength="2000" aria-describedby="err-description"></textarea><p id="err-description" class="error" data-error="description"></p></div>
+    </div>
+  </fieldset>
+  <p class="hidden" aria-hidden="true"><label>Leave empty <input name="website" tabindex="-1" autocomplete="off" /></label></p>
+  <div class="rounded-xl bg-paper-dim p-5">
+    <div class="flex items-center justify-between gap-4">
+      <span class="font-medium text-navy-deep">Consultation fee ₹1,000 (incl. GST)</span>
+      <span class="font-display text-2xl font-semibold text-navy-deep">₹1,000</span>
+    </div>
+    <label class="mt-4 flex items-start gap-3 text-sm">
+      <input type="checkbox" name="agree" required class="mt-1 size-4 accent-navy" />
+      <span>I agree to the <a href="/terms" target="_blank">terms of use</a> and the <a href="/refund-policy" target="_blank">refund &amp; cancellation policy</a>.</span>
+    </label>
+    <p class="error mt-1 text-sm text-danger" data-error="agree"></p>
+  </div>
+  <p id="booking-status" role="alert" class="text-sm text-danger empty:hidden"></p>
+  <button type="submit" class="btn-primary w-full text-base" data-submit>
+    <Icon name="lock" size={18} /> Pay ₹1,000 &amp; book
+  </button>
+  <p class="flex items-center justify-center gap-2 text-xs text-muted"><Icon name="shield" size={14} /> Payments are processed securely by Razorpay. We never see your card or UPI details.</p>
+</form>

@@ -1,0 +1,13 @@
+---
+import type { Article } from '../lib/content';
+import { readingMinutes } from '../lib/text';
+interface Props { article: Article }
+const { article: a } = Astro.props;
+const date = new Date(a.published_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+---
+<article class="card group relative flex h-full flex-col p-6 transition-shadow hover:shadow-lg hover:shadow-navy/5">
+  <p class="eyebrow mb-3">{a.category}</p>
+  <h3 class="text-xl leading-snug"><a href={`/resources/${a.slug}`} class="text-navy-deep no-underline after:absolute after:inset-0 group-hover:text-blue">{a.title}</a></h3>
+  <p class="mt-3 line-clamp-3 flex-1 text-[15px]">{a.excerpt}</p>
+  <p class="mt-5 text-sm text-muted"><time datetime={a.published_at}>{date}</time> · {readingMinutes(a.content)} min read</p>
+</article>

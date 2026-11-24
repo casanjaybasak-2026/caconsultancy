@@ -1,0 +1,15 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHero from './PageHero.astro';
+import { renderText } from '../lib/text';
+import { breadcrumbJsonLd } from '../lib/seo';
+interface Props { title: string; path: string; body: string; description: string; updated?: string }
+const { title, path, body, description, updated = '24 November 2026' } = Astro.props;
+---
+<Base title={`${title} | CA S K Basak`} description={description} path={path} ads={false} jsonLd={[breadcrumbJsonLd([['Home', '/'], [title, path]])]}>
+  <PageHero eyebrow="Legal" title={title} crumbs={[['Home', '/'], [title, path]]} />
+  <section class="container-x max-w-3xl py-14">
+    <p class="mb-8 text-sm text-muted">Last updated: {updated}</p>
+    <div class="prose-content" set:html={renderText(body)} />
+  </section>
+</Base>

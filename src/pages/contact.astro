@@ -1,0 +1,47 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHero from '../components/PageHero.astro';
+import Icon from '../components/Icon.astro';
+import { getSiteConfig } from '../lib/content';
+import { breadcrumbJsonLd } from '../lib/seo';
+import { SERVICE_OPTIONS } from '../data/options';
+const cfg = await getSiteConfig();
+const wa = cfg.contact_whatsapp.replace(/\D/g, '');
+---
+<Base title="Contact CA S K Basak | Chartered Accountant in Kolkata" description="Contact CA S K Basak, Chartered Accountant in Kolkata, for income tax, GST, audit, accounting and business advisory. Send an enquiry or book a consultation." path="/contact" jsonLd={[breadcrumbJsonLd([['Home', '/'], ['Contact', '/contact']])]}>
+  <PageHero eyebrow="Contact" title="Get in touch" lead="Send an enquiry and we'll respond regarding your requirement. For a paid one-to-one consultation, use the booking page." crumbs={[['Home', '/'], ['Contact', '/contact']]} />
+  <section class="section">
+    <div class="container-x grid gap-12 lg:grid-cols-[1.5fr_1fr]">
+      <form id="enquiry" class="card space-y-5 p-7 sm:p-8" novalidate>
+        <div class="grid gap-5 sm:grid-cols-2">
+          <div class="field"><label for="e-name">Name *</label><input id="e-name" name="name" required autocomplete="name" maxlength="100" /></div>
+          <div class="field"><label for="e-email">Email *</label><input id="e-email" name="email" type="email" required autocomplete="email" /></div>
+          <div class="field"><label for="e-phone">Mobile *</label><input id="e-phone" name="phone" type="tel" required autocomplete="tel" inputmode="tel" /></div>
+          <div class="field"><label for="e-service">Service</label><select id="e-service" name="service"><option value="">Select a service (optional)</option>{SERVICE_OPTIONS.map((s) => <option>{s}</option>)}</select></div>
+        </div>
+        <div class="field"><label for="e-message">Message *</label><textarea id="e-message" name="message" rows="5" required maxlength="1000"></textarea></div>
+        <p class="hidden" aria-hidden="true"><label>Leave empty <input name="website" tabindex="-1" autocomplete="off" /></label></p>
+        <p id="e-status" role="status" class="text-sm"></p>
+        <button type="submit" class="btn-primary">Send enquiry</button>
+      </form>
+      <aside class="space-y-5">
+        <div class="card space-y-4 p-7">
+          <h2 class="text-xl">Contact details</h2>
+          {cfg.contact_phone && <a href={`tel:${cfg.contact_phone.replace(/\s/g, '')}`} class="flex items-center gap-3 no-underline"><Icon name="phone" size={18} />{cfg.contact_phone}</a>}
+          {wa && <a href={`https://wa.me/${wa}`} class="flex items-center gap-3 no-underline" rel="noopener"><Icon name="whatsapp" size={18} />WhatsApp</a>}
+          {cfg.contact_email && <a href={`mailto:${cfg.contact_email}`} class="flex items-center gap-3 no-underline"><Icon name="mail" size={18} />{cfg.contact_email}</a>}
+          <p class="flex items-start gap-3"><Icon name="pin" size={18} class="mt-1 shrink-0" />{cfg.office_address}</p>
+        </div>
+        <div class="card bg-navy p-7 text-paper/80">
+          <h2 class="text-xl text-paper">Prefer a consultation?</h2>
+          <p class="mt-2 text-[15px]">Book a one-to-one session for ₹1,000 (incl. GST).</p>
+          <a href="/appointment" class="btn-gold mt-5 w-full">Book consultation</a>
+        </div>
+      </aside>
+    </div>
+  </section>
+</Base>
+<script>
+  import { submitEnquiry } from '../scripts/enquiry';
+  submitEnquiry(document.getElementById('enquiry') as HTMLFormElement);
+</script>

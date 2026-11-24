@@ -1,0 +1,30 @@
+---
+import Base from '../../layouts/Base.astro';
+import Icon from '../../components/Icon.astro';
+import { getSiteConfig } from '../../lib/content';
+const cfg = await getSiteConfig();
+const wa = cfg.contact_whatsapp.replace(/\D/g, '');
+---
+<Base title="Booking confirmed | CA S K Basak" description="Your consultation booking payment was received." path="/booking/success" noindex ads={false}>
+  <section class="container-x max-w-2xl py-20 sm:py-28">
+    <div class="card p-8 text-center sm:p-12">
+      <span class="mx-auto grid size-16 place-items-center rounded-full bg-success/10 text-success"><Icon name="check" size={32} /></span>
+      <h1 class="mt-6 text-3xl sm:text-4xl">Payment received — thank you</h1>
+      <p class="mt-4 text-lg">Your booking reference is <strong class="font-mono text-navy-deep" data-ref>—</strong></p>
+      <p class="mt-4">A receipt has been emailed to you. We'll confirm your consultation slot and send a Google Meet link (or call details) within one working day.</p>
+      <div class="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
+        {wa && <a href={`https://wa.me/${wa}`} data-wa={wa} class="btn bg-[#1f7a4d] text-white hover:bg-[#17603c]" rel="noopener"><Icon name="whatsapp" size={18} /> Message us on WhatsApp</a>}
+        <a href="/" class="btn-ghost">Back to home</a>
+      </div>
+      {!wa && <p class="mt-6 text-sm text-muted">Questions? Reply to your confirmation email quoting your booking reference.</p>}
+    </div>
+  </section>
+</Base>
+<script>
+  const ref = (new URLSearchParams(location.search).get('ref') ?? '').replace(/[^A-Z0-9-]/gi, '').slice(0, 20);
+  if (ref) {
+    document.querySelector('[data-ref]')!.textContent = ref;
+    const wa = document.querySelector<HTMLAnchorElement>('[data-wa]');
+    if (wa) wa.href = `https://wa.me/${wa.dataset.wa}?text=${encodeURIComponent(`Hello, I have booked a consultation. Booking reference: ${ref}`)}`;
+  }
+</script>

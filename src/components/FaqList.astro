@@ -1,0 +1,16 @@
+---
+import Icon from './Icon.astro';
+interface Props { faqs: { question: string; answer: string }[] }
+const { faqs } = Astro.props;
+---
+<div class="divide-y divide-line rounded-[var(--radius-card)] border border-line bg-white">
+  {faqs.map((f) => (
+    <details class="group px-6 py-1 [&_summary::-webkit-details-marker]:hidden">
+      <summary class="flex min-h-14 cursor-pointer list-none items-center justify-between gap-4 py-4 font-medium text-navy-deep">
+        <h3 class="font-sans text-base font-semibold">{f.question}</h3>
+        <Icon name="chevron" size={20} class="shrink-0 text-gold-ink transition-transform group-open:rotate-180" />
+      </summary>
+      <p class="pb-5 text-[15px] leading-relaxed">{f.answer}</p>
+    </details>
+  ))}
+</div>

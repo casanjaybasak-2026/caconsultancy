@@ -1,0 +1,15 @@
+---
+import Icon from './Icon.astro';
+import type { Service } from '../lib/content';
+interface Props { service: Service; index: number; detailed?: boolean }
+const { service: s, index, detailed = false } = Astro.props;
+const ICONS: Record<string, string> = { Receipt: 'receipt', FileCheck2: 'file', ShieldCheck: 'shield', BookOpen: 'book', LineChart: 'chart', TrendingUp: 'chart', Landmark: 'landmark', Building2: 'landmark', Search: 'search', FileSearch: 'search', Table: 'grid', Sheet: 'grid', FileSpreadsheet: 'grid' };
+---
+<article id={s.slug} class="card group relative flex h-full flex-col p-6 transition-shadow duration-200 hover:shadow-lg hover:shadow-navy/5 scroll-mt-28">
+  <div class="mb-5 flex items-center justify-between">
+    <span class="grid size-11 place-items-center rounded-xl bg-blue-soft text-navy"><Icon name={ICONS[s.icon] ?? 'spark'} size={22} /></span>
+    <span class="font-display text-sm text-gold-ink tabular-nums">{String(index + 1).padStart(2, '0')}</span>
+  </div>
+  <h3 class="text-xl">{s.title}</h3>
+  <p class="mt-2 text-[15px] leading-relaxed">{detailed ? s.description : s.short_description}</p>
+</article>
